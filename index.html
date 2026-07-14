@@ -170,9 +170,9 @@ body{font-family:var(--font-sans);background:transparent}
 // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
 const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpidXZ1amZuYXRyZWZ6bGFieXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY1NTcsImV4cCI6MjA5OTUyMjU1N30.fZfbZ0GAw22WnCHleO_DA0rqWMsWkN9Lzp9c-gs8a9c';
-let supabase=null;
+let sb=null;
 try{
-  supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 }catch(e){console.error('Supabase init failed',e);}
 // ===========================================================================
 
@@ -402,8 +402,8 @@ async function addReport(){
   const challenges=document.getElementById('rpt-challenges').value.trim();
   const recs=document.getElementById('rpt-recs').value.trim();
   if(!date){alert('Please enter at least a date.');return;}
-  if(supabase){
-    const{error}=await supabase.from('weekly_reports').insert({report_date:date,challenges,recommendations:recs});
+  if(sb){
+    const{error}=await sb.from('weekly_reports').insert({report_date:date,challenges,recommendations:recs});
     if(error){alert('Failed to save report to database: '+error.message);return;}
     await loadReportsFromDB();
   }else{
@@ -415,8 +415,8 @@ async function addReport(){
   renderReports();
 }
 async function deleteReport(id){
-  if(supabase){
-    const{error}=await supabase.from('weekly_reports').delete().eq('id',id);
+  if(sb){
+    const{error}=await sb.from('weekly_reports').delete().eq('id',id);
     if(error){alert('Failed to delete report: '+error.message);return;}
     await loadReportsFromDB();
   }else{
@@ -426,7 +426,7 @@ async function deleteReport(id){
 }
 
 async function saveAll(){
-  if(!supabase){
+  if(!sb){
     try{localStorage.setItem('cisco_reg_v4',JSON.stringify({store,reports}));showToast();}catch(e){showToast();}
     return;
   }
@@ -446,7 +446,7 @@ async function saveAll(){
     });
     if(sessionsNeeded.size){
       const rows=[...sessionsNeeded.values()].map(({_key,...r})=>r);
-      const{data:upserted,error}=await supabase.from('sessions').upsert(rows,{onConflict:'centre_id,session_date'}).select('id,centre_id,session_date');
+      const{data:upserted,error}=await sb.from('sessions').upsert(rows,{onConflict:'centre_id,session_date'}).select('id,centre_id,session_date');
       if(error)throw error;
       const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
       upserted.forEach(s=>{sessionIdCache[`${centreNameById[s.centre_id]}|${s.session_date}`]=s.id;});
@@ -479,10 +479,10 @@ async function saveAll(){
         noteRows.push({centre_id:centreIdByName[centre],week_number:parseInt(w),notes:store[k]});
       }
     });
-    if(attRows.length){const{error}=await supabase.from('attendance').upsert(attRows,{onConflict:'student_id,session_id'});if(error)throw error;}
+    if(attRows.length){const{error}=await sb.from('attendance').upsert(attRows,{onConflict:'student_id,session_id'});if(error)throw error;}
     const upRows=[...upMap.values()];
-    if(upRows.length){const{error}=await supabase.from('lab_uptime').upsert(upRows,{onConflict:'session_id'});if(error)throw error;}
-    if(noteRows.length){const{error}=await supabase.from('week_notes').upsert(noteRows,{onConflict:'centre_id,week_number'});if(error)throw error;}
+    if(upRows.length){const{error}=await sb.from('lab_uptime').upsert(upRows,{onConflict:'session_id'});if(error)throw error;}
+    if(noteRows.length){const{error}=await sb.from('week_notes').upsert(noteRows,{onConflict:'centre_id,week_number'});if(error)throw error;}
     showToast();
   }catch(e){
     console.error('Save to database failed',e);
@@ -493,15 +493,15 @@ function showToast(){
   const t=document.getElementById('toast');t.style.display='inline';setTimeout(()=>t.style.display='none',2000);
 }
 async function loadReportsFromDB(){
-  const{data,error}=await supabase.from('weekly_reports').select('id,report_date,challenges,recommendations').order('id',{ascending:false});
+  const{data,error}=await sb.from('weekly_reports').select('id,report_date,challenges,recommendations').order('id',{ascending:false});
   if(error||!data||!data.length){reports=SEED_REPORTS;return;}
   reports=data.map(r=>({id:r.id,date:r.report_date,challenges:r.challenges||'',recs:r.recommendations||''}));
 }
 async function loadCentresAndStudents(){
-  const{data:centres,error:ce}=await supabase.from('centres').select('id,name');
+  const{data:centres,error:ce}=await sb.from('centres').select('id,name');
   if(ce)throw ce;
   centreIdByName={};centres.forEach(c=>centreIdByName[c.name]=c.id);
-  const{data:students,error:se}=await supabase.from('students').select('id,full_name,centre_id').eq('active',true);
+  const{data:students,error:se}=await sb.from('students').select('id,full_name,centre_id').eq('active',true);
   if(se)throw se;
   studentIdByName={};
   const byCentre={'Milimani':[],'Coram Deo':[]};
@@ -519,7 +519,7 @@ async function loadAttendanceUptimeNotesFromDB(){
   const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
   const studentNameById={};Object.entries(studentIdByName).forEach(([n,id])=>studentNameById[id]=n);
 
-  const{data:sessions,error:sxe}=await supabase.from('sessions').select('id,centre_id,session_date');
+  const{data:sessions,error:sxe}=await sb.from('sessions').select('id,centre_id,session_date');
   if(sxe)throw sxe;
   sessionIdCache={};const sessById={};
   sessions.forEach(s=>{
@@ -528,7 +528,7 @@ async function loadAttendanceUptimeNotesFromDB(){
     sessionIdCache[`${centreName}|${s.session_date}`]=s.id;
   });
 
-  const{data:atts,error:axe}=await supabase.from('attendance').select('student_id,session_id,status,reason');
+  const{data:atts,error:axe}=await sb.from('attendance').select('student_id,session_id,status,reason');
   if(axe)throw axe;
   atts.forEach(a=>{
     const sess=sessById[a.session_id];if(!sess)return;
@@ -538,7 +538,7 @@ async function loadAttendanceUptimeNotesFromDB(){
     if(a.reason)store[KR(sess.centreName,idx.wi,idx.di,name)]=a.reason;
   });
 
-  const{data:ups,error:uxe}=await supabase.from('lab_uptime').select('session_id,planned_hours,actual_hours');
+  const{data:ups,error:uxe}=await sb.from('lab_uptime').select('session_id,planned_hours,actual_hours');
   if(uxe)throw uxe;
   ups.forEach(u=>{
     const sess=sessById[u.session_id];if(!sess)return;
@@ -547,7 +547,7 @@ async function loadAttendanceUptimeNotesFromDB(){
     if(u.actual_hours!=null)store[KU(sess.centreName,idx.wi,idx.di,'actual')]=u.actual_hours;
   });
 
-  const{data:notes,error:nxe}=await supabase.from('week_notes').select('centre_id,week_number,notes');
+  const{data:notes,error:nxe}=await sb.from('week_notes').select('centre_id,week_number,notes');
   if(nxe)throw nxe;
   notes.forEach(n=>{
     const centreName=centreNameById[n.centre_id];
@@ -555,7 +555,7 @@ async function loadAttendanceUptimeNotesFromDB(){
   });
 }
 async function loadData(){
-  if(!supabase){
+  if(!sb){
     setDbStatus('Offline mode (local only)',false);
     loadLocalFallback();
     return;
