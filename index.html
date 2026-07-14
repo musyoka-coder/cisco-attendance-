@@ -287,13 +287,29 @@ function setDbStatus(text,ok){
   el.style.background=ok?'rgba(159,225,203,.2)':'rgba(240,149,149,.25)';
   el.style.color=ok?'#9FE1CB':'#F09595';
 }
+function findCurrentIndex(weeks){
+  const today=new Date();today.setHours(0,0,0,0);
+  for(let wi=0;wi<weeks.length;wi++){
+    for(let di=0;di<weeks[wi].sessions.length;di++){
+      const d=new Date(weeks[wi].sessions[di].date);d.setHours(0,0,0,0);
+      if(d.getTime()===today.getTime())return{wi,di};
+      if(d>today)return{wi,di};
+    }
+  }
+  if(weeks.length){
+    const lastWi=weeks.length-1;
+    return{wi:lastWi,di:weeks[lastWi].sessions.length-1};
+  }
+  return{wi:0,di:0};
+}
 
 function getStudents(){return currentCenter==='Milimani'?MILIMANI:CORAM_DEO;}
 
 function switchCenter(c,btn){
-  currentCenter=c;currentWeek=0;currentDay=0;
+  currentCenter=c;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   WEEKS=getWeeksWithDays(c);
+  const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
   document.getElementById('centre-schedule').textContent=CENTER_SCHEDULE[c];
   renderAll();if(currentSection==='uptime')renderUptime();if(currentSection==='reports')renderReports();
 }
@@ -646,6 +662,8 @@ function renderAll(){
 }
 async function init(){
   await loadData();
+  WEEKS=getWeeksWithDays(currentCenter);
+  const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
   renderAll();
 }
 async function doLogin(){
