@@ -128,6 +128,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   .reg-table td:first-child{display:none}
   .att-wrap{justify-content:flex-end}
   .session-row{grid-template-columns:1fr}
+  .login-box{padding:1.5rem 1.3rem;border-radius:14px}
+  .login-box h2{font-size:16px}
+  .login-box input{font-size:16px;padding:11px 12px}
+  .login-box button{padding:12px;font-size:14px}
+}
+@media (max-width:400px){
+  .login-box{width:100%}
 }
 </style>
 
@@ -223,6 +230,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   </div>
   <div id="reports-list"></div>
 </div>
+
+<footer style="text-align:center;padding:1.5rem 0 .5rem;font-size:11px;color:var(--ink-mute)">
+  Designed by <a href="https://www.techcraftlimited.tech" target="_blank" rel="noopener noreferrer" style="color:var(--navy);font-weight:600;text-decoration:none">Techcraft Limited</a>
+</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -678,11 +689,13 @@ async function doLogin(){
   await showApp();
 }
 async function doLogout(){
-  if(sb)await sb.auth.signOut();
-  document.getElementById('app-root').style.display='none';
-  document.getElementById('login-overlay').style.display='flex';
-  document.getElementById('login-email').value='';
-  document.getElementById('login-password').value='';
+  if(!confirm('Sign out of the CISCO Training Programme system?'))return;
+  try{
+    if(sb)await sb.auth.signOut();
+  }catch(e){
+    console.error('Sign out request failed',e);
+  }
+  location.reload();
 }
 async function showApp(){
   document.getElementById('login-overlay').style.display='none';
