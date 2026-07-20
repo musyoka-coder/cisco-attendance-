@@ -284,6 +284,7 @@ function KN(c,w){return`note|${c}|${w}`}
 
 let store={};let reports=[];
 let currentCenter='Milimani',currentSection='attendance',currentWeek=0,currentDay=0,WEEKS=[];
+let centerView={};
 let centreIdByName={},studentIdByName={},sessionIdCache={};
 const isoDate=d=>d.toISOString().slice(0,10);
 function buildDateIndex(center){
@@ -320,7 +321,12 @@ function switchCenter(c,btn){
   currentCenter=c;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   WEEKS=getWeeksWithDays(c);
-  const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
+  if(centerView[c]){
+    currentWeek=Math.min(centerView[c].week,WEEKS.length-1);
+    currentDay=Math.min(centerView[c].day,(WEEKS[currentWeek]?WEEKS[currentWeek].sessions.length:1)-1);
+  }else{
+    const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
+  }
   document.getElementById('centre-schedule').textContent=CENTER_SCHEDULE[c];
   renderAll();if(currentSection==='uptime')renderUptime();if(currentSection==='reports')renderReports();
 }
@@ -348,10 +354,10 @@ function buildDayTabs(){
   w.sessions.forEach((sess,i)=>{
     const btn=document.createElement('button');btn.className='day-tab'+(i===currentDay?' active':'');
     btn.textContent=`${sess.name} ${FMTS(sess.date)}`;
-    btn.onclick=()=>{currentDay=i;buildDayTabs();renderRegister();};c.appendChild(btn);
+    btn.onclick=()=>{currentDay=i;centerView[currentCenter]={week:currentWeek,day:currentDay};buildDayTabs();renderRegister();};c.appendChild(btn);
   });
 }
-function onWeekChange(){currentWeek=parseInt(document.getElementById('week-select').value);currentDay=0;updatePill();buildDayTabs();renderRegister();}
+function onWeekChange(){currentWeek=parseInt(document.getElementById('week-select').value);currentDay=0;centerView[currentCenter]={week:currentWeek,day:currentDay};updatePill();buildDayTabs();renderRegister();}
 
 function markAll(val){
   getStudents().forEach(s=>{store[KA(currentCenter,currentWeek,currentDay,s)]=val;});
@@ -675,6 +681,7 @@ async function init(){
   await loadData();
   WEEKS=getWeeksWithDays(currentCenter);
   const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
+  centerView[currentCenter]={week:currentWeek,day:currentDay};
   renderAll();
 }
 async function doLogin(){
@@ -690,19 +697,57 @@ async function doLogin(){
 }
 async function doLogout(){
   if(!confirm('Sign out of the CISCO Training Programme system?'))return;
+  stopInactivityTimer();
   try{
     if(sb)await sb.auth.signOut();
   }catch(e){
     console.error('Sign out request failed',e);
   }
+  // Belt-and-braces: also wipe any locally cached Supabase session
+  // directly, in case the network call above didn't complete.
+  try{
+    Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-'))localStorage.removeItem(k);});
+  }catch(e){console.error('Local session clear failed',e);}
   location.reload();
 }
+
+// ---- Auto sign-out after inactivity (30 minutes) ----
+const INACTIVITY_LIMIT_MS=30*60*1000;
+let inactivityTimer=null;
+function resetInactivityTimer(){
+  if(!sb)return; // no auth configured, nothing to time out
+  clearTimeout(inactivityTimer);
+  inactivityTimer=setTimeout(autoSignOut,INACTIVITY_LIMIT_MS);
+}
+function stopInactivityTimer(){
+  clearTimeout(inactivityTimer);inactivityTimer=null;
+}
+async function autoSignOut(){
+  try{if(sb)await sb.auth.signOut();}catch(e){console.error('Auto sign-out request failed',e);}
+  try{Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-'))localStorage.removeItem(k);});}catch(e){}
+  try{sessionStorage.setItem('cisco_auto_signed_out','1');}catch(e){}
+  location.reload();
+}
+['mousemove','keydown','click','touchstart','scroll'].forEach(evt=>{
+  document.addEventListener(evt,()=>{
+    const root=document.getElementById('app-root');
+    if(root&&root.style.display!=='none')resetInactivityTimer();
+  },{passive:true});
+});
+
 async function showApp(){
   document.getElementById('login-overlay').style.display='none';
   document.getElementById('app-root').style.display='';
+  resetInactivityTimer();
   await init();
 }
 async function checkSession(){
+  try{
+    if(sessionStorage.getItem('cisco_auto_signed_out')){
+      document.getElementById('login-error').textContent='You were signed out after a period of inactivity. Please sign in again.';
+      sessionStorage.removeItem('cisco_auto_signed_out');
+    }
+  }catch(e){}
   if(!sb){
     // No database connection at all — skip login, run in local-only mode
     await showApp();
