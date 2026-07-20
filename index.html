@@ -168,8 +168,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 <div class="tabs">
   <button class="tab active" onclick="switchCenter('Milimani',this)">Milimani Centre</button>
   <button class="tab" onclick="switchCenter('Coram Deo',this)">Coram Deo Centre</button>
+  <button class="tab" onclick="showDashboard(this)">📊 Dashboard</button>
 </div>
 
+<div id="centre-view">
 <div class="section-tabs">
   <button class="stab active" onclick="switchSection('attendance',this)">Attendance register</button>
   <button class="stab" onclick="switchSection('uptime',this)">Lab uptime</button>
@@ -230,6 +232,50 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   </div>
   <div id="reports-list"></div>
 </div>
+</div>
+
+<div id="section-dashboard" style="display:none">
+  <div class="stats" id="dash-overview"></div>
+
+  <div class="card">
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Attendance trend by week (%)</h3>
+    <canvas id="chart-attendance-trend" height="90"></canvas>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="dash-two-col">
+    <div class="card">
+      <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Attendance breakdown</h3>
+      <canvas id="chart-attendance-breakdown" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Lab uptime by week (%)</h3>
+      <canvas id="chart-uptime-trend" height="180"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Students needing attention (attendance under 75%)</h3>
+    <div id="dash-at-risk"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--ink)">Project challenges</h3>
+      <div style="display:flex;gap:6px" id="dash-challenge-filter">
+        <button class="day-tab active" data-filter="all" onclick="setChallengeFilter('all',this)">All</button>
+        <button class="day-tab" data-filter="unresolved" onclick="setChallengeFilter('unresolved',this)">Unresolved</button>
+        <button class="day-tab" data-filter="resolved" onclick="setChallengeFilter('resolved',this)">Resolved</button>
+      </div>
+    </div>
+    <div class="stats" id="dash-challenge-stats" style="margin-bottom:14px"></div>
+    <div id="dash-challenges"></div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Recent recommendations</h3>
+    <div id="dash-reports"></div>
+  </div>
+</div>
 
 <footer style="text-align:center;padding:1.5rem 0 .5rem;font-size:11px;color:var(--ink-mute)">
   Designed by <a href="https://www.techcraftlimited.tech" target="_blank" rel="noopener noreferrer" style="color:var(--navy);font-weight:600;text-decoration:none">Techcraft Limited</a>
@@ -237,6 +283,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
 const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
@@ -282,11 +329,19 @@ function KR(c,w,d,n){return`abs|${c}|${w}|${d}|${n}`}
 function KU(c,w,d,f){return`up|${c}|${w}|${d}|${f}`}
 function KN(c,w){return`note|${c}|${w}`}
 
-let store={};let reports=[];
+let store={};let reports=[];let challengeItems=[];let challengeFilter='all';
 let currentCenter='Milimani',currentSection='attendance',currentWeek=0,currentDay=0,WEEKS=[];
 let centerView={};
 let centreIdByName={},studentIdByName={},sessionIdCache={};
 const isoDate=d=>d.toISOString().slice(0,10);
+let autoSaveTimer=null;
+function touchStore(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{saveAll();autoSaveTimer=null;},4000);
+}
+window.addEventListener('beforeunload',function(e){
+  if(autoSaveTimer){e.preventDefault();e.returnValue='';}
+});
 function buildDateIndex(center){
   const map={};
   getWeeksWithDays(center).forEach((wk,wi)=>wk.sessions.forEach((sess,di)=>{map[isoDate(sess.date)]={wi,di};}));
@@ -320,6 +375,8 @@ function getStudents(){return currentCenter==='Milimani'?MILIMANI:CORAM_DEO;}
 function switchCenter(c,btn){
   currentCenter=c;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('section-dashboard').style.display='none';
+  document.getElementById('centre-view').style.display='';
   WEEKS=getWeeksWithDays(c);
   if(centerView[c]){
     currentWeek=Math.min(centerView[c].week,WEEKS.length-1);
@@ -335,6 +392,172 @@ function switchSection(s,btn){
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   ['attendance','uptime','reports'].forEach(x=>document.getElementById('section-'+x).style.display=x===s?'':'none');
   if(s==='uptime')renderUptime();if(s==='reports')renderReports();
+}
+
+// ============================================================
+// DASHBOARD — analytics across both centres
+// ============================================================
+let dashCharts={};
+function showDashboard(btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('centre-view').style.display='none';
+  document.getElementById('section-dashboard').style.display='';
+  renderDashboard();
+}
+function computeAttendanceStats(centre){
+  const weeks=getWeeksWithDays(centre);
+  const students=centre==='Milimani'?MILIMANI:CORAM_DEO;
+  let P=0,A=0,E=0;
+  const perStudent={};students.forEach(s=>perStudent[s]={P:0,A:0,E:0,marked:0});
+  const weeklyPct=[];
+  weeks.forEach((wk,wi)=>{
+    let wP=0,wMarked=0;
+    wk.sessions.forEach((sess,di)=>{
+      students.forEach(s=>{
+        const v=store[KA(centre,wi,di,s)];
+        if(v==='P'||v==='A'||v==='E'){
+          wMarked++;perStudent[s].marked++;
+          if(v==='P'){P++;wP++;perStudent[s].P++;}
+          else if(v==='A'){A++;perStudent[s].A++;}
+          else if(v==='E'){E++;perStudent[s].E++;}
+        }
+      });
+    });
+    if(wMarked>0)weeklyPct.push({label:'W'+(wi+1),pct:Math.round((wP/wMarked)*100)});
+  });
+  return{P,A,E,perStudent,weeklyPct,students};
+}
+function computeUptimeStats(centre){
+  const weeks=getWeeksWithDays(centre);
+  let planned=0,actual=0;const weeklyPct=[];
+  weeks.forEach((wk,wi)=>{
+    let wPlan=0,wAct=0;
+    wk.sessions.forEach((sess,di)=>{
+      wPlan+=parseFloat(store[KU(centre,wi,di,'planned')])||0;
+      wAct+=parseFloat(store[KU(centre,wi,di,'actual')])||0;
+    });
+    planned+=wPlan;actual+=wAct;
+    if(wPlan>0)weeklyPct.push({label:'W'+(wi+1),pct:Math.min(100,Math.round((wAct/wPlan)*100))});
+  });
+  return{planned,actual,weeklyPct};
+}
+function destroyDashCharts(){
+  Object.values(dashCharts).forEach(c=>{if(c)c.destroy();});
+  dashCharts={};
+}
+function setChallengeFilter(filter,btn){
+  challengeFilter=filter;
+  document.querySelectorAll('#dash-challenge-filter .day-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDashboardChallenges();
+}
+function renderDashboardChallenges(){
+  const total=challengeItems.length;
+  const resolved=challengeItems.filter(c=>c.resolved).length;
+  const unresolved=total-resolved;
+  document.getElementById('dash-challenge-stats').innerHTML=`
+    <div class="stat"><div class="stat-label">Total challenges</div><div class="stat-val">${total}</div></div>
+    <div class="stat"><div class="stat-label">Resolved</div><div class="stat-val green">${resolved}</div></div>
+    <div class="stat"><div class="stat-label">Unresolved</div><div class="stat-val red">${unresolved}</div></div>
+  `;
+  let list=challengeItems;
+  if(challengeFilter==='resolved')list=challengeItems.filter(c=>c.resolved);
+  else if(challengeFilter==='unresolved')list=challengeItems.filter(c=>!c.resolved);
+  const reportById={};reports.forEach(r=>reportById[r.id]=r);
+  const sorted=[...list].sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+  document.getElementById('dash-challenges').innerHTML=sorted.length?sorted.map(c=>{
+    const rpt=reportById[c.report_id];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);cursor:pointer" onclick='toggleChallenge(${JSON.stringify(c.id)},${c.resolved})'>
+      <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved?'var(--green)':'var(--red)'};background:${c.resolved?'var(--green)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">${c.resolved?'<span style="color:#fff;font-size:11px;font-weight:700">✓</span>':''}</div>
+      <span style="flex:1;font-size:12.5px;${c.resolved?'text-decoration:line-through;color:var(--ink-mute)':'color:var(--ink)'}">${c.description}</span>
+      ${rpt?`<span style="font-size:10.5px;color:var(--ink-mute);white-space:nowrap">Wk of ${rpt.date}</span>`:''}
+    </div>`;
+  }).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No challenges match this filter.</p>';
+}
+function renderDashboard(){
+  const milAtt=computeAttendanceStats('Milimani'),corAtt=computeAttendanceStats('Coram Deo');
+  const milUp=computeUptimeStats('Milimani'),corUp=computeUptimeStats('Coram Deo');
+  const totalStudents=MILIMANI.length+CORAM_DEO.length;
+  const totalP=milAtt.P+corAtt.P,totalA=milAtt.A+corAtt.A,totalE=milAtt.E+corAtt.E;
+  const totalMarked=totalP+totalA+totalE;
+  const overallAttPct=totalMarked?Math.round((totalP/totalMarked)*100):0;
+  const totalPlanned=milUp.planned+corUp.planned,totalActual=milUp.actual+corUp.actual;
+  const overallUptimePct=totalPlanned?Math.min(100,Math.round((totalActual/totalPlanned)*100)):0;
+
+  document.getElementById('dash-overview').innerHTML=`
+    <div class="stat"><div class="stat-label">Total students</div><div class="stat-val">${totalStudents}</div></div>
+    <div class="stat"><div class="stat-label">Overall attendance</div><div class="stat-val green">${overallAttPct}%</div></div>
+    <div class="stat"><div class="stat-label">Overall lab uptime</div><div class="stat-val" style="color:${overallUptimePct>=80?'var(--green)':overallUptimePct>=50?'var(--amber)':'var(--red)'}">${overallUptimePct}%</div></div>
+    <div class="stat"><div class="stat-label">Total absences</div><div class="stat-val red">${totalA}</div></div>
+    <div class="stat"><div class="stat-label">Total excused</div><div class="stat-val" style="color:var(--amber)">${totalE}</div></div>
+    <div class="stat"><div class="stat-label">Weekly reports filed</div><div class="stat-val">${reports.length}</div></div>
+  `;
+
+  destroyDashCharts();
+
+  const maxWeeks=Math.max(milAtt.weeklyPct.length,corAtt.weeklyPct.length);
+  const labels=Array.from({length:maxWeeks},(_,i)=>'W'+(i+1));
+  dashCharts.trend=new Chart(document.getElementById('chart-attendance-trend'),{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Milimani',data:milAtt.weeklyPct.map(w=>w.pct),borderColor:'#0C447C',backgroundColor:'rgba(12,68,124,.08)',tension:.3,fill:true},
+      {label:'Coram Deo',data:corAtt.weeklyPct.map(w=>w.pct),borderColor:'#1E7A46',backgroundColor:'rgba(30,122,70,.08)',tension:.3,fill:true}
+    ]},
+    options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
+  });
+
+  dashCharts.breakdown=new Chart(document.getElementById('chart-attendance-breakdown'),{
+    type:'doughnut',
+    data:{labels:['Present','Absent','Excused'],datasets:[{data:[totalP,totalA,totalE],backgroundColor:['#1E7A46','#C0392B','#A9660B']}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
+  });
+
+  const maxUpWeeks=Math.max(milUp.weeklyPct.length,corUp.weeklyPct.length);
+  const upLabels=Array.from({length:maxUpWeeks},(_,i)=>'W'+(i+1));
+  dashCharts.uptime=new Chart(document.getElementById('chart-uptime-trend'),{
+    type:'bar',
+    data:{labels:upLabels,datasets:[
+      {label:'Milimani',data:milUp.weeklyPct.map(w=>w.pct),backgroundColor:'#378ADD'},
+      {label:'Coram Deo',data:corUp.weeklyPct.map(w=>w.pct),backgroundColor:'#3CB27A'}
+    ]},
+    options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
+  });
+
+  const atRisk=[];
+  [['Milimani',milAtt],['Coram Deo',corAtt]].forEach(([centreName,stats])=>{
+    Object.entries(stats.perStudent).forEach(([name,d])=>{
+      if(d.marked>0){
+        const pct=Math.round((d.P/d.marked)*100);
+        if(pct<75)atRisk.push({name,centre:centreName,pct,marked:d.marked,A:d.A,E:d.E});
+      }
+    });
+  });
+  atRisk.sort((a,b)=>a.pct-b.pct);
+  const riskHtml=atRisk.length?atRisk.slice(0,15).map(r=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft)">
+      <div>
+        <span style="font-size:13px;font-weight:500;color:var(--ink)">${r.name}</span>
+        <span class="centre-badge ${r.centre==='Milimani'?'mil':'cor'}" style="margin-left:8px">${r.centre}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:11px;color:var(--ink-mute)">${r.A} absent · ${r.E} excused</span>
+        <span style="font-size:14px;font-weight:700;color:${r.pct<50?'var(--red)':'var(--amber)'}">${r.pct}%</span>
+      </div>
+    </div>`).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No students currently below 75% attendance — nice work.</p>';
+  document.getElementById('dash-at-risk').innerHTML=riskHtml;
+
+  renderDashboardChallenges();
+
+  const recent=reports.slice(0,4);
+  const reportsHtml=recent.length?recent.map(r=>{
+    const recs=(r.recs||'').split('\n').filter(x=>x.trim());
+    return `
+    <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)">
+      <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Week ending ${r.date}</div>
+      ${recs.length?recs.map(c=>`<div class="rec-item"><div class="rec-dot"></div><span>${c}</span></div>`).join(''):'<p style="font-size:12px;color:var(--ink-mute)">No recommendations logged.</p>'}
+    </div>`;
+  }).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No weekly reports logged yet.</p>';
+  document.getElementById('dash-reports').innerHTML=reportsHtml;
 }
 
 function initWeekSelect(){
@@ -361,7 +584,7 @@ function onWeekChange(){currentWeek=parseInt(document.getElementById('week-selec
 
 function markAll(val){
   getStudents().forEach(s=>{store[KA(currentCenter,currentWeek,currentDay,s)]=val;});
-  renderRegister();
+  touchStore();renderRegister();
 }
 
 function renderRegister(){
@@ -395,14 +618,14 @@ function renderRegister(){
           <button class="att-btn ${v==='E'?'st-E':'st-none-E'}" data-s="${s}" data-w="${w}" data-d="${d}" data-v="E">E</button>
         </div>
       </td>
-      <td data-label="Reason"><input class="absence-input" placeholder="${v==='A'||v==='E'?'Enter reason…':'—'}" value="${abv}" ${v==='A'||v==='E'?`data-kr="${kr}" oninput="store[this.dataset.kr]=this.value"`:`disabled style="opacity:.35"`}></td>
+      <td data-label="Reason"><input class="absence-input" placeholder="${v==='A'||v==='E'?'Enter reason…':'—'}" value="${abv}" ${v==='A'||v==='E'?`data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()"`:`disabled style="opacity:.35"`}></td>
     `;
     body.appendChild(tr);
   });
   document.querySelectorAll('.att-btn').forEach(btn=>{
     btn.addEventListener('click',function(){
       const{s,w,d,v}=this.dataset;const k=KA(currentCenter,parseInt(w),parseInt(d),s);
-      store[k]=(store[k]===v)?'none':v;renderRegister();
+      store[k]=(store[k]===v)?'none':v;touchStore();renderRegister();
     });
   });
 }
@@ -428,9 +651,9 @@ function renderUptime(){
         <div style="font-size:12px;font-weight:500;color:var(--ink)">${sess.name}<span style="font-size:11px;color:var(--ink-mute);margin-left:4px">${FMTS(sess.date)}</span></div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <label style="font-size:11px;color:var(--ink-soft)">Planned hrs</label>
-          <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${pv}" data-k="${pk}" oninput="store[this.dataset.k]=this.value;renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
+          <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${pv}" data-k="${pk}" oninput="store[this.dataset.k]=this.value;touchStore();renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
           <label style="font-size:11px;color:var(--ink-soft)">Actual hrs</label>
-          <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${fv}" data-k="${fk}" oninput="store[this.dataset.k]=this.value;renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
+          <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${fv}" data-k="${fk}" oninput="store[this.dataset.k]=this.value;touchStore();renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
           <div class="uptime-bar"><div class="uptime-fill ${fc}" style="width:${pct||0}%"></div></div>
           <span style="font-size:12px;font-weight:500;min-width:34px;text-align:right;color:${pc}">${pct!==null?pct+'%':'—'}</span>
         </div>
@@ -443,7 +666,7 @@ function renderUptime(){
         <div style="font-size:11px;color:var(--ink-soft)">Week total: <strong style="color:${wColor}">${wPct!==null?wPct+'%':'not logged'}</strong></div>
       </div>
       ${sessHtml}
-      <textarea class="week-notes" rows="2" placeholder="Week notes / issues…" data-nk="${nk}" oninput="store[this.dataset.nk]=this.value">${nVal}</textarea>
+      <textarea class="week-notes" rows="2" placeholder="Week notes / issues…" data-nk="${nk}" oninput="store[this.dataset.nk]=this.value;touchStore()">${nVal}</textarea>
     `;
     list.appendChild(block);
   });
@@ -463,20 +686,26 @@ function renderReports(){
   if(!reports.length){list.innerHTML='<div style="font-size:13px;color:var(--ink-mute);text-align:center;padding:2rem">No reports yet.</div>';return;}
   const sorted=reports;
   sorted.forEach(r=>{
-    const challenges=r.challenges.split('\n').filter(x=>x.trim());
-    const recs=r.recs.split('\n').filter(x=>x.trim());
+    const recs=(r.recs||'').split('\n').filter(x=>x.trim());
+    const items=challengeItems.filter(c=>String(c.report_id)===String(r.id));
+    const resolvedCount=items.filter(c=>c.resolved).length;
     const div=document.createElement('div');div.className='report-card';
     div.innerHTML=`
       <div class="report-header" onclick="this.nextElementSibling.classList.toggle('open')">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h3>Week ending ${r.date}</h3>
+          ${items.length?`<span style="font-size:10.5px;color:#B5D4F4;background:rgba(255,255,255,.14);padding:2px 9px;border-radius:999px">${resolvedCount}/${items.length} resolved</span>`:''}
         </div>
         <span style="color:#B5D4F4;font-size:14px">+</span>
       </div>
       <div class="report-body">
         <div class="report-section">
           <h4 style="color:#A32D2D">Challenges</h4>
-          ${challenges.map(c=>`<div class="challenge-item"><div class="challenge-dot"></div><span>${c}</span></div>`).join('')}
+          ${items.length?items.map(c=>`
+            <div class="challenge-item" style="align-items:center;cursor:pointer" onclick="toggleChallenge(${c.id},${c.resolved})">
+              <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved?'var(--green)':'var(--red)'};background:${c.resolved?'var(--green)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px">${c.resolved?'<span style="color:#fff;font-size:11px;font-weight:700">✓</span>':''}</div>
+              <span style="${c.resolved?'text-decoration:line-through;color:var(--ink-mute)':''}">${c.description}</span>
+            </div>`).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No challenges logged for this report.</p>'}
         </div>
         <div class="report-section">
           <h4 style="color:#1E5631">Recommendations</h4>
@@ -491,37 +720,67 @@ function renderReports(){
   });
 }
 
+async function toggleChallenge(id,currentlyResolved){
+  const newVal=!currentlyResolved;
+  const item=challengeItems.find(c=>c.id===id);
+  if(item){item.resolved=newVal;} // optimistic update
+  renderReports();if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
+  if(sb){
+    const{error}=await sb.from('challenge_items').update({resolved:newVal,resolved_at:newVal?new Date().toISOString():null}).eq('id',id);
+    if(error){
+      console.error('Failed to update challenge status',error);
+      if(item)item.resolved=currentlyResolved; // revert on failure
+      renderReports();if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
+    }
+  }
+}
+
 async function addReport(){
   const date=document.getElementById('rpt-date').value.trim();
   const challenges=document.getElementById('rpt-challenges').value.trim();
   const recs=document.getElementById('rpt-recs').value.trim();
   if(!date){alert('Please enter at least a date.');return;}
   if(sb){
-    const{error}=await sb.from('weekly_reports').insert({report_date:date,challenges,recommendations:recs});
+    const{data,error}=await sb.from('weekly_reports').insert({report_date:date,challenges,recommendations:recs}).select('id').single();
     if(error){alert('Failed to save report to database: '+error.message);return;}
+    const lines=challenges.split('\n').map(x=>x.trim()).filter(Boolean);
+    if(lines.length&&data){
+      const rows=lines.map(description=>({report_id:data.id,description,resolved:false}));
+      const{error:ce}=await sb.from('challenge_items').insert(rows);
+      if(ce)console.error('Failed to save challenge items',ce);
+    }
     await loadReportsFromDB();
+    await loadChallengeItemsFromDB();
   }else{
-    reports.push({id:'r'+Date.now(),date,challenges,recs});
+    const id='r'+Date.now();
+    reports.push({id,date,challenges,recs});
+    challenges.split('\n').map(x=>x.trim()).filter(Boolean).forEach((description,i)=>{
+      challengeItems.push({id:'c'+Date.now()+i,report_id:id,description,resolved:false});
+    });
   }
   document.getElementById('rpt-date').value='';
   document.getElementById('rpt-challenges').value='';
   document.getElementById('rpt-recs').value='';
   renderReports();
+  if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
 }
 async function deleteReport(id){
   if(sb){
     const{error}=await sb.from('weekly_reports').delete().eq('id',id);
     if(error){alert('Failed to delete report: '+error.message);return;}
     await loadReportsFromDB();
+    await loadChallengeItemsFromDB();
   }else{
     reports=reports.filter(r=>String(r.id)!==String(id));
+    challengeItems=challengeItems.filter(c=>String(c.report_id)!==String(id));
   }
   renderReports();
+  if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
 }
 
 async function saveAll(){
   if(!sb){
-    try{localStorage.setItem('cisco_reg_v4',JSON.stringify({store,reports}));showToast();}catch(e){showToast();}
+    try{localStorage.setItem('cisco_reg_v4',JSON.stringify({store,reports,challengeItems}));showToast();}catch(e){showToast();}
     return;
   }
   try{
@@ -591,6 +850,11 @@ async function loadReportsFromDB(){
   if(error||!data||!data.length){reports=SEED_REPORTS;return;}
   reports=data.map(r=>({id:r.id,date:r.report_date,challenges:r.challenges||'',recs:r.recommendations||''}));
 }
+async function loadChallengeItemsFromDB(){
+  const{data,error}=await sb.from('challenge_items').select('id,report_id,description,resolved').order('id',{ascending:true});
+  if(error||!data){challengeItems=[];return;}
+  challengeItems=data;
+}
 async function loadCentresAndStudents(){
   const{data:centres,error:ce}=await sb.from('centres').select('id,name');
   if(ce)throw ce;
@@ -658,6 +922,7 @@ async function loadData(){
     await loadCentresAndStudents();
     await loadAttendanceUptimeNotesFromDB();
     await loadReportsFromDB();
+    await loadChallengeItemsFromDB();
     setDbStatus('Connected to database',true);
   }catch(e){
     console.error('Supabase load failed, falling back to local storage',e);
@@ -668,9 +933,16 @@ async function loadData(){
 function loadLocalFallback(){
   try{
     const d=localStorage.getItem('cisco_reg_v4');
-    if(d){const p=JSON.parse(d);store=p.store||{};reports=p.reports||SEED_REPORTS;}
-    else{reports=SEED_REPORTS;}
-  }catch(e){reports=SEED_REPORTS;}
+    if(d){const p=JSON.parse(d);store=p.store||{};reports=p.reports||SEED_REPORTS;challengeItems=p.challengeItems||[];}
+    else{reports=SEED_REPORTS;challengeItems=[];}
+  }catch(e){reports=SEED_REPORTS;challengeItems=[];}
+  if(!challengeItems.length){
+    reports.forEach(r=>{
+      (r.challenges||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach((description,i)=>{
+        challengeItems.push({id:`seed-${r.id}-${i}`,report_id:r.id,description,resolved:false});
+      });
+    });
+  }
 }
 function renderAll(){
   WEEKS=getWeeksWithDays(currentCenter);
@@ -698,6 +970,12 @@ async function doLogin(){
 async function doLogout(){
   if(!confirm('Sign out of the CISCO Training Programme system?'))return;
   stopInactivityTimer();
+  clearTimeout(autoSaveTimer);
+  try{
+    await saveAll();
+  }catch(e){
+    console.error('Save before logout failed',e);
+  }
   try{
     if(sb)await sb.auth.signOut();
   }catch(e){
@@ -723,6 +1001,8 @@ function stopInactivityTimer(){
   clearTimeout(inactivityTimer);inactivityTimer=null;
 }
 async function autoSignOut(){
+  clearTimeout(autoSaveTimer);
+  try{await saveAll();}catch(e){console.error('Save before auto sign-out failed',e);}
   try{if(sb)await sb.auth.signOut();}catch(e){console.error('Auto sign-out request failed',e);}
   try{Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-'))localStorage.removeItem(k);});}catch(e){}
   try{sessionStorage.setItem('cisco_auto_signed_out','1');}catch(e){}
