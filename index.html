@@ -125,7 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   .reg-table tr:nth-child(even){background:var(--surface)}
   .reg-table td{border-bottom:none;padding:5px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
   .reg-table td[data-label]::before{content:attr(data-label);font-size:10px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
-  .reg-table td:first-child{display:none}
+  .reg-table td.idx-col{display:none}
   .att-wrap{justify-content:flex-end}
   .session-row{grid-template-columns:1fr}
   .login-box{padding:1.5rem 1.3rem;border-radius:14px}
@@ -195,6 +195,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
     <button class="bulk-btn all-p" onclick="markAll('P')">All present</button>
     <button class="bulk-btn all-a" onclick="markAll('A')">All absent</button>
     <button class="bulk-btn clear" onclick="markAll('none')">Clear all</button>
+    <div style="width:1px;height:20px;background:var(--line);margin:0 4px"></div>
+    <span>Excuse reason:</span>
+    <select id="bulk-excuse-reason" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink)">
+      <option value="School closed">School closed</option>
+      <option value="Games">Games</option>
+      <option value="Sick">Sick</option>
+    </select>
+    <button class="bulk-btn" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)" onclick="markAllExcused()">Excuse all</button>
+    <button class="bulk-btn" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)" onclick="markSelectedExcused()">Excuse selected</button>
     <div style="flex:1"></div>
     <span style="font-size:11px;color:var(--ink-mute)">P = Present &nbsp; A = Absent &nbsp; E = Excused</span>
   </div>
@@ -202,10 +211,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   <div class="card" style="padding:0;overflow:hidden">
     <table class="reg-table">
       <thead><tr>
+        <th style="width:30px"><input type="checkbox" id="select-all-chk" onchange="toggleSelectAll(this)"></th>
         <th style="width:34px">#</th>
         <th>Student name</th>
         <th style="text-align:center;width:108px">Attendance</th>
-        <th>Reason for absence</th>
+        <th style="min-width:170px">Reason for absence / excuse</th>
       </tr></thead>
       <tbody id="reg-body"></tbody>
     </table>
@@ -254,7 +264,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   </div>
 
   <div class="card">
-    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Students needing attention (attendance under 75%)</h3>
+    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Students needing attention (attendance under 75%, excused absences not counted)</h3>
     <div id="dash-at-risk"></div>
   </div>
 
@@ -299,6 +309,13 @@ const CORAM_DEO=["John Mwenda","Keziah Wambui","John Njogo","Bernard Njoroge","E
 const CENTER_DAYS={'Milimani':[{name:'Tuesday',dow:2},{name:'Thursday',dow:4}],'Coram Deo':[{name:'Monday',dow:1},{name:'Wednesday',dow:3}]};
 const CENTER_SCHEDULE={'Milimani':'Tue & Thu','Coram Deo':'Mon & Wed'};
 
+// Preset reasons for an "Excused" mark. "Other" lets the trainer type a custom reason.
+const EXCUSE_REASONS=['School closed','Games','Sick'];
+function reasonCodeFor(text){
+  if(!text) return null;
+  return EXCUSE_REASONS.includes(text)?text:'Other';
+}
+
 const SEED_REPORTS=[
   {id:'r1',date:'16 Mar 2026',
    challenges:'Lack of IT technician toolkit — no complete toolkit available for PC assembly, maintenance and troubleshooting.\nLack of spare or outdated CPUs for practical training activities.\nNetwork connectivity issues: social workers unable to access network from their offices, forced to use the computer lab.',
@@ -332,6 +349,7 @@ function KN(c,w){return`note|${c}|${w}`}
 let store={};let reports=[];let challengeItems=[];let challengeFilter='all';
 let currentCenter='Milimani',currentSection='attendance',currentWeek=0,currentDay=0,WEEKS=[];
 let centerView={};
+let selectedForBulk=new Set();
 let centreIdByName={},studentIdByName={},sessionIdCache={};
 const isoDate=d=>d.toISOString().slice(0,10);
 let autoSaveTimer=null;
@@ -374,6 +392,7 @@ function getStudents(){return currentCenter==='Milimani'?MILIMANI:CORAM_DEO;}
 
 function switchCenter(c,btn){
   currentCenter=c;
+  selectedForBulk=new Set();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   document.getElementById('section-dashboard').style.display='none';
   document.getElementById('centre-view').style.display='';
@@ -523,12 +542,16 @@ function renderDashboard(){
     options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
   });
 
+  // "Needing attention" — excused absences are removed from the calculation entirely,
+  // so a student who is excused (school closed / games / sick) never drags their % down
+  // and a student who is excused for every session this term is not flagged at all.
   const atRisk=[];
   [['Milimani',milAtt],['Coram Deo',corAtt]].forEach(([centreName,stats])=>{
     Object.entries(stats.perStudent).forEach(([name,d])=>{
-      if(d.marked>0){
-        const pct=Math.round((d.P/d.marked)*100);
-        if(pct<75)atRisk.push({name,centre:centreName,pct,marked:d.marked,A:d.A,E:d.E});
+      const denom=d.P+d.A; // excused (E) sessions are excluded from both numerator and denominator
+      if(denom>0){
+        const pct=Math.round((d.P/denom)*100);
+        if(pct<75)atRisk.push({name,centre:centreName,pct,denom,A:d.A,E:d.E});
       }
     });
   });
@@ -540,7 +563,7 @@ function renderDashboard(){
         <span class="centre-badge ${r.centre==='Milimani'?'mil':'cor'}" style="margin-left:8px">${r.centre}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--ink-mute)">${r.A} absent · ${r.E} excused</span>
+        <span style="font-size:11px;color:var(--ink-mute)">${r.A} absent · ${r.E} excused (not counted)</span>
         <span style="font-size:14px;font-weight:700;color:${r.pct<50?'var(--red)':'var(--amber)'}">${r.pct}%</span>
       </div>
     </div>`).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No students currently below 75% attendance — nice work.</p>';
@@ -577,13 +600,66 @@ function buildDayTabs(){
   w.sessions.forEach((sess,i)=>{
     const btn=document.createElement('button');btn.className='day-tab'+(i===currentDay?' active':'');
     btn.textContent=`${sess.name} ${FMTS(sess.date)}`;
-    btn.onclick=()=>{currentDay=i;centerView[currentCenter]={week:currentWeek,day:currentDay};buildDayTabs();renderRegister();};c.appendChild(btn);
+    btn.onclick=()=>{currentDay=i;selectedForBulk=new Set();centerView[currentCenter]={week:currentWeek,day:currentDay};buildDayTabs();renderRegister();};c.appendChild(btn);
   });
 }
-function onWeekChange(){currentWeek=parseInt(document.getElementById('week-select').value);currentDay=0;centerView[currentCenter]={week:currentWeek,day:currentDay};updatePill();buildDayTabs();renderRegister();}
+function onWeekChange(){currentWeek=parseInt(document.getElementById('week-select').value);currentDay=0;selectedForBulk=new Set();centerView[currentCenter]={week:currentWeek,day:currentDay};updatePill();buildDayTabs();renderRegister();}
 
 function markAll(val){
   getStudents().forEach(s=>{store[KA(currentCenter,currentWeek,currentDay,s)]=val;});
+  touchStore();renderRegister();
+}
+
+// Excuse EVERY student for the current session with the reason chosen in the bulk bar.
+function markAllExcused(){
+  const reason=document.getElementById('bulk-excuse-reason').value;
+  getStudents().forEach(s=>{
+    store[KA(currentCenter,currentWeek,currentDay,s)]='E';
+    store[KR(currentCenter,currentWeek,currentDay,s)]=reason;
+  });
+  touchStore();renderRegister();
+}
+// Excuse only the checked ("selected") students with the reason chosen in the bulk bar —
+// use this when just a handful of students are excused rather than the whole class.
+function markSelectedExcused(){
+  if(!selectedForBulk.size){alert('Tick the checkbox next to at least one student first.');return;}
+  const reason=document.getElementById('bulk-excuse-reason').value;
+  selectedForBulk.forEach(s=>{
+    store[KA(currentCenter,currentWeek,currentDay,s)]='E';
+    store[KR(currentCenter,currentWeek,currentDay,s)]=reason;
+  });
+  touchStore();renderRegister();
+}
+function toggleSelectAll(chk){
+  const query=(document.getElementById('search-input').value||'').toLowerCase();
+  const names=getStudents().filter(s=>s.toLowerCase().includes(query));
+  if(chk.checked)names.forEach(n=>selectedForBulk.add(n));else names.forEach(n=>selectedForBulk.delete(n));
+  renderRegister();
+}
+
+// Builds the reason cell: a preset dropdown (+ free-text "Other") for Excused,
+// a plain free-text box for Absent, and a disabled placeholder otherwise.
+function renderReasonCell(v,kr,abv){
+  if(v==='E'){
+    const selVal=EXCUSE_REASONS.includes(abv)?abv:(abv?'Other':'');
+    let html=`<select class="absence-input" data-kr="${kr}" onchange="onExcuseReasonChange(this)">`;
+    html+=`<option value="" ${selVal===''?'selected':''}>Select reason…</option>`;
+    EXCUSE_REASONS.forEach(r=>{html+=`<option value="${r}" ${selVal===r?'selected':''}>${r}</option>`;});
+    html+=`<option value="Other" ${selVal==='Other'?'selected':''}>Other</option>`;
+    html+='</select>';
+    if(selVal==='Other'){
+      html+=`<input class="absence-input" style="margin-top:4px" placeholder="Specify reason…" value="${abv}" data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+    }
+    return html;
+  }
+  if(v==='A'){
+    return `<input class="absence-input" placeholder="Enter reason…" value="${abv}" data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+  }
+  return `<input class="absence-input" placeholder="—" value="" disabled style="opacity:.35">`;
+}
+function onExcuseReasonChange(sel){
+  const val=sel.value;
+  store[sel.dataset.kr]=(val==='Other')?'':val;
   touchStore();renderRegister();
 }
 
@@ -609,7 +685,8 @@ function renderRegister(){
     const v=store[kv]||'none',abv=store[kr]||'';
     const idx=all.indexOf(s);const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td style="color:var(--ink-mute);font-size:12px">${idx+1}</td>
+      <td data-label="Select"><input type="checkbox" class="row-chk" data-s="${s}" ${selectedForBulk.has(s)?'checked':''}></td>
+      <td class="idx-col" style="color:var(--ink-mute);font-size:12px">${idx+1}</td>
       <td data-label="Student" style="font-weight:${v==='P'?'600':'500'}">${s}</td>
       <td data-label="Attendance">
         <div class="att-wrap">
@@ -618,7 +695,7 @@ function renderRegister(){
           <button class="att-btn ${v==='E'?'st-E':'st-none-E'}" data-s="${s}" data-w="${w}" data-d="${d}" data-v="E">E</button>
         </div>
       </td>
-      <td data-label="Reason"><input class="absence-input" placeholder="${v==='A'||v==='E'?'Enter reason…':'—'}" value="${abv}" ${v==='A'||v==='E'?`data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()"`:`disabled style="opacity:.35"`}></td>
+      <td data-label="Reason">${renderReasonCell(v,kr,abv)}</td>
     `;
     body.appendChild(tr);
   });
@@ -628,6 +705,14 @@ function renderRegister(){
       store[k]=(store[k]===v)?'none':v;touchStore();renderRegister();
     });
   });
+  document.querySelectorAll('.row-chk').forEach(chk=>{
+    chk.addEventListener('change',function(){
+      const s=this.dataset.s;
+      if(this.checked)selectedForBulk.add(s);else selectedForBulk.delete(s);
+    });
+  });
+  const selAllChk=document.getElementById('select-all-chk');
+  if(selAllChk)selAllChk.checked=filtered.length>0&&filtered.every(s=>selectedForBulk.has(s));
 }
 
 function renderUptime(){
@@ -815,8 +900,10 @@ async function saveAll(){
         const date=isoDate(wk.sessions[parseInt(d)].date);
         const sessId=sessionIdCache[`${centre}|${date}`];const studId=studentIdByName[name];
         if(!sessId||!studId)return;
+        const status=store[k];
         const reason=store[KR(centre,w,d,name)]||null;
-        attRows.push({student_id:studId,session_id:sessId,status:store[k],reason});
+        const reasonCode=status==='E'?reasonCodeFor(reason):null;
+        attRows.push({student_id:studId,session_id:sessId,status,reason,reason_code:reasonCode});
       }else if(type==='up'){
         const[,centre,w,d,field]=parts;
         const wk=(WEEKS.length&&centre===currentCenter?WEEKS:getWeeksWithDays(centre))[parseInt(w)];
