@@ -1,3 +1,4 @@
+
 <style>
 :root{
   --navy:#1F3864;--navy-dark:#152A4E;--navy-deep:#0F1F3D;
@@ -305,7 +306,7 @@ try{
 // ===========================================================================
 
 const MILIMANI=["Alex Mwangi","Bonface Nyambane","Caleb Mwaniki","Daudi Otieno","Erick Maeba","Ian Magara","Isaac Lokori","Joseph Ngunga","Kefa Momanyi","Joseph Mbugua","Kevin Ombasi","Kelvin Kibet","Mark Mokesa","Michael Karanja","Paul Rowaka","Sammy Kiunge","Sammy Mbugua","Yvonne Ateka","Tabitha Njeri","Susan Wangari","Sharon Moraa","Selina Ebakari","Patience Yuswa","Olivia Atieno","Miriam Njeri","Maryane Ananda","Lucy Nyawira","Loice Rachael","Lucy Muthoni","Lauren Njeri","Joyce Nyakio","Jeniffer Indata","Grace Wairimu","Gladys Wambui","Angella Muthoni","Angel Moraa","Adah Wanjiku","Dancan Thuo","Winfrida Moraa"];
-const CORAM_DEO=["John Mwenda","Keziah Wambui","John Njogo","Bernard Njoroge","Elizabeth Magoma","Elvin Moraa","John Mwangi","Peter Njuguna","Emmanuel Misiani","Jane Njeri","Meshack Njoroge","Consolata Wairimo","Ian Nyangeyo","David Odhiambo","Amos Nyamweya","Catherine Basweti","Innocent Onsongo","Frankline Onkware","Ezekiel Opanda","Ian Orucha","Victor Stephen","Naftali Njuki","Josphat Mwangi","Phane Kerubo","Mellephine Mogaka","Natasha Wanjiku","Elizabeth Kerubo","Elijah Njoroge","Margaret Wairimu","Lydia Njeri","Esther Wakanyi","Leon Kipchirchir","Joy Njeri","Emmah Kemunto"];
+const CORAM_DEO=["John Mwenda","Keziah Wambui","John Njogo","Bernard Njoroge","Elizabeth Magoma","Elvin Moraa","John Mwangi","Peter Njuguna","Emmanuel Misiani","Jane Njeri","Meshack Njoroge","Consolata Wairimo","Ian Nyangeyo","David Odhiambo","Amos Nyamweya","Catherine Basweti","Innocent Onsongo","Frankline Onkware","Ezekiel Opanda","Ian Orucha","Victor Stephen","Naftali Njuki","Josphat Mwangi","Phane Kerubo","Mellephine Mogaka","Natasha Wanjiku","Elizabeth Kerubo","Elijah Njoroge","Margaret Wairimu","Lydia Njeri","Esther Wakanyi","Leon Kipchirchir","Joy Njeri","Emmah Kemunto","Emmaculate Krembo"];
 const CENTER_DAYS={'Milimani':[{name:'Tuesday',dow:2},{name:'Thursday',dow:4}],'Coram Deo':[{name:'Monday',dow:1},{name:'Wednesday',dow:3}]};
 const CENTER_SCHEDULE={'Milimani':'Tue & Thu','Coram Deo':'Mon & Wed'};
 
@@ -351,7 +352,18 @@ let currentCenter='Milimani',currentSection='attendance',currentWeek=0,currentDa
 let centerView={};
 let selectedForBulk=new Set();
 let centreIdByName={},studentIdByName={},sessionIdCache={};
-const isoDate=d=>d.toISOString().slice(0,10);
+// FIX: use the LOCAL calendar date (year/month/day as displayed), not
+// toISOString() which converts to UTC first. toISOString() rolls the date
+// back by one day for any timezone ahead of UTC (e.g. Kenya, UTC+3), which
+// was silently shifting every saved session onto the wrong date in the
+// database and could show marks as "blank" whenever the app was opened
+// from a device with a different timezone setting than before.
+const isoDate=d=>{
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+};
 let autoSaveTimer=null;
 function touchStore(){
   clearTimeout(autoSaveTimer);
