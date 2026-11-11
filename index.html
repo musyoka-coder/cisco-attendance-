@@ -996,7 +996,7 @@ function normalizeLearnerName(name){return String(name||'').trim().replace(/\\s+
 function escapeLearnerHtml(value){return String(value).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function setLearnerFeedback(message,isError=false){const el=document.getElementById('learner-feedback');el.textContent=message;el.style.color=isError?'var(--red)':'var(--ink-soft)';}
 async function renderLearnerManager(){
-  const centreSelect=document.getElementById('learner-centre');centreSelect.value=currentCenter;
+  const centreSelect=document.getElementById('learner-centre');if(!centreSelect.dataset.ready){centreSelect.value=currentCenter;centreSelect.dataset.ready='1';}
   const list=document.getElementById('learner-list'),count=document.getElementById('learner-count');
   if(!sb||!centreIdByName[centreSelect.value]){list.textContent='Database connection is unavailable.';count.textContent='';return;}
   try{
@@ -1041,13 +1041,12 @@ async function importLearnersFile(){
   const file=document.getElementById('learner-file').files[0];if(!file){setLearnerFeedback('Choose an Excel or CSV file first.',true);return;}
   const button=document.getElementById('import-learners-btn');button.disabled=true;
   try{
-    const lower=file.name.toLowerCase();let rows;
-    if(lower.endsWith('.csv')){const text=await file.text();rows=text.split(/\\r?\\n/).map(line=>line.split(','));}
-    else{
-      if(!window.XLSX)throw new Error('Excel reader did not load. Reload the page or use a CSV file.');
-      const workbook=XLSX.read(await file.arrayBuffer(),{type:'array'}),sheet=workbook.Sheets[workbook.SheetNames[0]];
-      rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
-    }
+    const lower=file.name.toLowerCase();
+    if(!window.XLSX)throw new Error('Excel reader did not load. Reload the page or use a CSV file.');
+    const source=lower.endsWith('.csv')?await file.text():await file.arrayBuffer();
+    const workbook=XLSX.read(source,{type:lower.endsWith('.csv')?'string':'array'});
+    const sheet=workbook.Sheets[workbook.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
     const result=await insertLearnerNames(getNamesFromSheet(rows));document.getElementById('learner-file').value='';
     setLearnerFeedback('Imported '+result.added+' learner'+(result.added===1?'':'s')+' to '+result.centreName+' ('+result.year+'). '+result.duplicates+' duplicate'+(result.duplicates===1?' was':'s were')+' skipped.');
     await renderLearnerManager();if(result.year===2026){await loadCentresAndStudents();renderAll();}
