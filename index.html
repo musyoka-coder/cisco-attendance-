@@ -175,6 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 <div id="centre-view">
 <div class="section-tabs">
   <button class="stab active" onclick="switchSection('attendance',this)">Attendance register</button>
+  <button class="stab" onclick="switchSection('learners',this)">Learner enrolment</button>
   <button class="stab" onclick="switchSection('uptime',this)">Lab uptime</button>
   <button class="stab" onclick="switchSection('reports',this)">Weekly reports</button>
 </div>
@@ -220,6 +221,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
       </tr></thead>
       <tbody id="reg-body"></tbody>
     </table>
+  </div>
+</div>
+
+<div id="section-learners" style="display:none">
+  <div class="card">
+    <h3 style="font-size:14px;margin-bottom:6px">Add learners for an academic year</h3>
+    <p style="font-size:12px;color:var(--ink-soft);margin-bottom:14px">New enrolments are saved to Supabase and kept separate from the 2026 attendance register until that year's register is configured.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+      <label style="font-size:12px;color:var(--ink-soft)">Centre
+        <select id="learner-centre" style="display:block;margin-top:4px;padding:8px;border:1px solid var(--line);border-radius:7px"><option>Milimani</option><option>Coram Deo</option></select>
+      </label>
+      <label style="font-size:12px;color:var(--ink-soft)">Academic year
+        <select id="learner-year" style="display:block;margin-top:4px;padding:8px;border:1px solid var(--line);border-radius:7px"><option value="2027" selected>2027</option><option value="2026">2026</option><option value="2028">2028</option></select>
+      </label>
+      <label style="font-size:12px;color:var(--ink-soft);flex:1;min-width:190px">Learner full name
+        <input id="learner-name" type="text" maxlength="120" placeholder="e.g. Amina Wanjiku" style="display:block;width:100%;margin-top:4px;padding:8px;border:1px solid var(--line);border-radius:7px">
+      </label>
+      <button class="add-btn" id="add-learner-btn" onclick="addSingleLearner()">Add learner</button>
+    </div>
+    <div style="height:1px;background:var(--line);margin:16px 0"></div>
+    <label style="font-size:12px;color:var(--ink-soft);font-weight:600">Import an Excel or CSV class list</label>
+    <p style="font-size:11px;color:var(--ink-mute);margin:4px 0 8px">Use a column headed “Name”, “Student Name” or “Full Name”; otherwise the first column is used. Every learner in the file will be assigned to the selected centre and year.</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="learner-file" type="file" accept=".xlsx,.xls,.csv"><button class="add-btn" id="import-learners-btn" onclick="importLearnersFile()">Import list</button>
+    </div>
+    <div id="learner-feedback" role="status" style="font-size:12px;margin-top:9px;color:var(--ink-soft)"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h3 style="font-size:14px">Enrolled learners</h3><span id="learner-count" style="font-size:12px;color:var(--ink-soft)"></span></div>
+    <div id="learner-list" style="margin-top:10px"></div>
   </div>
 </div>
 
@@ -295,6 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
 const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
@@ -421,7 +453,8 @@ function switchCenter(c,btn){
 function switchSection(s,btn){
   currentSection=s;
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  ['attendance','uptime','reports'].forEach(x=>document.getElementById('section-'+x).style.display=x===s?'':'none');
+  ['attendance','learners','uptime','reports'].forEach(x=>document.getElementById('section-'+x).style.display=x===s?'':'none');
+  if(s==='learners')renderLearnerManager();
   if(s==='uptime')renderUptime();if(s==='reports')renderReports();
 }
 
@@ -954,11 +987,79 @@ async function loadChallengeItemsFromDB(){
   if(error||!data){challengeItems=[];return;}
   challengeItems=data;
 }
+async function getSelectedLearnerContext(){
+  const centreName=document.getElementById('learner-centre').value,year=Number(document.getElementById('learner-year').value),centreId=centreIdByName[centreName];
+  if(!centreId)throw new Error('The selected centre is not available in Supabase.');
+  return{centreName,centreId,year};
+}
+function normalizeLearnerName(name){return String(name||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase();}
+function escapeLearnerHtml(value){return String(value).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function setLearnerFeedback(message,isError=false){const el=document.getElementById('learner-feedback');el.textContent=message;el.style.color=isError?'var(--red)':'var(--ink-soft)';}
+async function renderLearnerManager(){
+  const centreSelect=document.getElementById('learner-centre');centreSelect.value=currentCenter;
+  const list=document.getElementById('learner-list'),count=document.getElementById('learner-count');
+  if(!sb||!centreIdByName[centreSelect.value]){list.textContent='Database connection is unavailable.';count.textContent='';return;}
+  try{
+    const{centreId,year}=await getSelectedLearnerContext();
+    const{data,error}=await sb.from('students').select('full_name').eq('centre_id',centreId).eq('academic_year',year).eq('active',true).order('full_name');
+    if(error)throw error;
+    count.textContent=(data.length||0)+' learners · '+year;
+    list.innerHTML=data.length?'<ol style="padding-left:22px;columns:2;column-gap:30px">'+data.map(s=>'<li style="font-size:12px;padding:3px 0;break-inside:avoid">'+escapeLearnerHtml(s.full_name)+'</li>').join('')+'</ol>':'<p style="font-size:12px;color:var(--ink-mute)">No learners enrolled for this centre and year yet.</p>';
+  }catch(e){list.textContent='Could not load learners: '+(e.message||e);count.textContent='';}
+}
+async function insertLearnerNames(names){
+  const{centreId,year,centreName}=await getSelectedLearnerContext();
+  const cleaned=names.map(n=>String(n||'').trim().replace(/\\s+/g,' ')).filter(Boolean);
+  if(!cleaned.length)throw new Error('No learner names were found.');
+  const{data:existing,error}=await sb.from('students').select('full_name').eq('centre_id',centreId).eq('academic_year',year).eq('active',true);
+  if(error)throw error;
+  const seen=new Set((existing||[]).map(s=>normalizeLearnerName(s.full_name))),unique=[];
+  let duplicates=0;
+  cleaned.forEach(name=>{const key=normalizeLearnerName(name);if(seen.has(key)){duplicates++;return;}seen.add(key);unique.push({full_name:name,centre_id:centreId,academic_year:year,active:true});});
+  if(unique.length){const{error:insertError}=await sb.from('students').insert(unique);if(insertError)throw insertError;}
+  return{added:unique.length,duplicates,centreName,year};
+}
+async function addSingleLearner(){
+  if(!sb){setLearnerFeedback('Supabase is not connected.',true);return;}
+  const name=document.getElementById('learner-name').value.trim();if(!name){setLearnerFeedback('Enter the learner’s full name.',true);return;}
+  const button=document.getElementById('add-learner-btn');button.disabled=true;
+  try{
+    const result=await insertLearnerNames([name]);document.getElementById('learner-name').value='';
+    setLearnerFeedback(result.added?name+' added to '+result.centreName+' ('+result.year+').':'That learner is already enrolled for this year.');
+    await renderLearnerManager();if(result.year===2026){await loadCentresAndStudents();renderAll();}
+  }catch(e){setLearnerFeedback('Could not add learner: '+(e.message||e),true);}finally{button.disabled=false;}
+}
+function getNamesFromSheet(rows){
+  const nonEmpty=rows.filter(row=>Array.isArray(row)&&row.some(cell=>String(cell??'').trim()));if(!nonEmpty.length)return[];
+  const header=nonEmpty[0].map(cell=>String(cell??'').trim().toLowerCase());
+  const nameIndex=header.findIndex(cell=>['name','student name','full name','learner name','student','learner'].includes(cell));
+  const start=nameIndex>=0?1:0,column=nameIndex>=0?nameIndex:0;
+  return nonEmpty.slice(start).map(row=>row[column]).filter(value=>value!=null).map(value=>String(value).trim()).filter(Boolean);
+}
+async function importLearnersFile(){
+  if(!sb){setLearnerFeedback('Supabase is not connected.',true);return;}
+  const file=document.getElementById('learner-file').files[0];if(!file){setLearnerFeedback('Choose an Excel or CSV file first.',true);return;}
+  const button=document.getElementById('import-learners-btn');button.disabled=true;
+  try{
+    const lower=file.name.toLowerCase();let rows;
+    if(lower.endsWith('.csv')){const text=await file.text();rows=text.split(/\\r?\\n/).map(line=>line.split(','));}
+    else{
+      if(!window.XLSX)throw new Error('Excel reader did not load. Reload the page or use a CSV file.');
+      const workbook=XLSX.read(await file.arrayBuffer(),{type:'array'}),sheet=workbook.Sheets[workbook.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+    }
+    const result=await insertLearnerNames(getNamesFromSheet(rows));document.getElementById('learner-file').value='';
+    setLearnerFeedback('Imported '+result.added+' learner'+(result.added===1?'':'s')+' to '+result.centreName+' ('+result.year+'). '+result.duplicates+' duplicate'+(result.duplicates===1?' was':'s were')+' skipped.');
+    await renderLearnerManager();if(result.year===2026){await loadCentresAndStudents();renderAll();}
+  }catch(e){setLearnerFeedback('Import failed: '+(e.message||e),true);}finally{button.disabled=false;}
+}
+document.addEventListener('change',function(event){if((event.target.id==='learner-year'||event.target.id==='learner-centre')&&document.getElementById('section-learners').style.display!=='none')renderLearnerManager();});
+
 async function loadCentresAndStudents(){
   const{data:centres,error:ce}=await sb.from('centres').select('id,name');
   if(ce)throw ce;
   centreIdByName={};centres.forEach(c=>centreIdByName[c.name]=c.id);
-  const{data:students,error:se}=await sb.from('students').select('id,full_name,centre_id').eq('active',true);
+  const{data:students,error:se}=await sb.from('students').select('id,full_name,centre_id').eq('active',true).eq('academic_year',2026);
   if(se)throw se;
   studentIdByName={};
   const byCentre={'Milimani':[],'Coram Deo':[]};
