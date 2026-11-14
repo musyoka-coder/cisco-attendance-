@@ -56,7 +56,7 @@ Staff dashboards receive update notifications for new evidence and survey respon
 
 ### Deployment
 
-The original GitHub Pages URL inherits an unrelated account-level custom-domain redirect and returns a 404. Use the dedicated Vercel production address. `npm run build` copies only the public application files into `dist`; database migrations, tests and package files are not served. The Git-connected Vercel project follows `main`.
+The original GitHub Pages URL inherits an unrelated account-level custom-domain redirect and returns a 404. Use the dedicated Sites production address: https://cisco-training-register.glitteringion.chatgpt.site. `npm run build` copies only the public application files into `dist`; database migrations, tests and package files are not served. Vercel project creation was denied by account permissions. The application is deployed with Sites; GitHub remains the canonical source repository and the hosted source is synchronised during releases. The Vercel configuration is retained for future migration.
 
 ### Additional validation
 
