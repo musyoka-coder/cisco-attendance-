@@ -154,7 +154,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 <div class="top-bar">
   <div>
     <h1>Missions of Hope International — CISCO Training Programme</h1>
-    <p>Grade 8 · Attendance, Lab Uptime &amp; Weekly Reports · 20 Feb – 31 Dec 2026 &nbsp;|&nbsp; Trainer: Nicholus Mutiso</p>
+    <p>Grade 8 · Attendance, Lab Uptime &amp; Weekly Reports · Year-based register &nbsp;|&nbsp; Trainer: Nicholus Mutiso</p>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="pill" id="current-week-label"></span>
@@ -166,6 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
   </div>
 </div>
 
+<div class="card" style="margin:12px 0"><label for="academic-year">Academic year: </label><select id="academic-year" onchange="changeAcademicYear(this.value)"></select><span id="year-message" role="status" style="margin-left:12px"></span></div>
 <div class="tabs">
   <button class="tab active" onclick="switchCenter('Milimani',this)">Milimani Centre</button>
   <button class="tab" onclick="switchCenter('Coram Deo',this)">Coram Deo Centre</button>
@@ -180,6 +181,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 </div>
 
 <div id="section-attendance">
+  <details class="card" style="padding:16px;margin-bottom:12px">
+    <summary style="cursor:pointer;font-weight:600">Add learners / Import Excel</summary>
+    <p>Selected register: <strong id="enrolment-target"></strong>. Existing records are preserved.</p>
+    <form id="learner-form" onsubmit="event.preventDefault();addLearner()" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+      <label>Full name<br><input id="learner-name" required minlength="2" maxlength="120" autocomplete="off" placeholder="Learner’s full name"></label>
+      <button class="bulk-btn" type="submit">Add learner</button>
+    </form>
+    <hr style="margin:18px 0;border:0;border-top:1px solid var(--line)">
+    <p>Upload .xlsx, .xls or .csv with a <strong>Full Name</strong> column. A one-column list without a heading also works. Maximum 1,000 learners and 5 MB per file.</p>
+    <button class="bulk-btn" onclick="downloadLearnerTemplate()">Download Excel template</button>
+    <label style="display:inline-block;margin:8px">Choose file <input id="learner-file" type="file" accept=".xlsx,.xls,.csv" onchange="previewLearnerFile(this.files[0])"></label>
+    <div id="import-preview" style="max-height:260px;overflow:auto"></div>
+    <button id="import-confirm" class="bulk-btn" hidden onclick="confirmLearnerImport()">Import valid learners</button>
+    <p id="learner-message" role="status" aria-live="polite"></p>
+  </details>
   <div class="card" style="padding:.75rem 1.25rem">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:8px">
@@ -295,6 +311,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="learner-import.js"></script>
 <script>
 // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
 const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
@@ -305,8 +323,9 @@ try{
 }catch(e){console.error('Supabase init failed',e);}
 // ===========================================================================
 
-const MILIMANI=["Alex Mwangi","Bonface Nyambane","Caleb Mwaniki","Daudi Otieno","Erick Maeba","Ian Magara","Isaac Lokori","Joseph Ngunga","Kefa Momanyi","Joseph Mbugua","Kevin Ombasi","Kelvin Kibet","Mark Mokesa","Michael Karanja","Paul Rowaka","Sammy Kiunge","Sammy Mbugua","Yvonne Ateka","Tabitha Njeri","Susan Wangari","Sharon Moraa","Selina Ebakari","Patience Yuswa","Olivia Atieno","Miriam Njeri","Maryane Ananda","Lucy Nyawira","Loice Rachael","Lucy Muthoni","Lauren Njeri","Joyce Nyakio","Jeniffer Indata","Grace Wairimu","Gladys Wambui","Angella Muthoni","Angel Moraa","Adah Wanjiku","Dancan Thuo","Winfrida Moraa"];
-const CORAM_DEO=["John Mwenda","Keziah Wambui","John Njogo","Bernard Njoroge","Elizabeth Magoma","Elvin Moraa","John Mwangi","Peter Njuguna","Emmanuel Misiani","Jane Njeri","Meshack Njoroge","Consolata Wairimo","Ian Nyangeyo","David Odhiambo","Amos Nyamweya","Catherine Basweti","Innocent Onsongo","Frankline Onkware","Ezekiel Opanda","Ian Orucha","Victor Stephen","Naftali Njuki","Josphat Mwangi","Phane Kerubo","Mellephine Mogaka","Natasha Wanjiku","Elizabeth Kerubo","Elijah Njoroge","Margaret Wairimu","Lydia Njeri","Esther Wakanyi","Leon Kipchirchir","Joy Njeri","Emmah Kemunto","Emmaculate Krembo"];
+const MILIMANI=[], CORAM_DEO=[];
+let academicYear=2026, databaseReady=false, importPreview=null;
+const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CENTER_DAYS={'Milimani':[{name:'Tuesday',dow:2},{name:'Thursday',dow:4}],'Coram Deo':[{name:'Monday',dow:1},{name:'Wednesday',dow:3}]};
 const CENTER_SCHEDULE={'Milimani':'Tue & Thu','Coram Deo':'Mon & Wed'};
 
@@ -330,11 +349,12 @@ const SEED_REPORTS=[
 ];
 
 function getWeeksWithDays(center){
-  const days=CENTER_DAYS[center];const end=new Date(2026,11,31);const weeks=[];
-  let mon=new Date(2026,1,23);
+  const days=CENTER_DAYS[center];const end=new Date(academicYear,11,31);const weeks=[];
+  const start=academicYear===2026?new Date(2026,1,23):new Date(academicYear,0,1);
+  let mon=new Date(start);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
   while(mon<=end){
     const sessions=[];
-    days.forEach(day=>{const sd=new Date(mon);sd.setDate(mon.getDate()+(day.dow-1));if(sd<=end&&sd>=new Date(2026,1,20))sessions.push({name:day.name,date:new Date(sd)});});
+    days.forEach(day=>{const sd=new Date(mon);sd.setDate(mon.getDate()+(day.dow-1));if(sd<=end&&sd>=start)sessions.push({name:day.name,date:new Date(sd)});});
     if(sessions.length)weeks.push({monday:new Date(mon),sessions});
     mon.setDate(mon.getDate()+7);
   }
@@ -380,7 +400,7 @@ function buildDateIndex(center){
 function setDbStatus(text,ok){
   console.log('[DB status]',text);
   const el=document.getElementById('db-status');
-  el.textContent=text;
+  el.textContent=text;el.style.display='inline';
   el.style.background=ok?'rgba(159,225,203,.2)':'rgba(240,149,149,.25)';
   el.style.color=ok?'#9FE1CB':'#F09595';
 }
@@ -404,6 +424,7 @@ function getStudents(){return currentCenter==='Milimani'?MILIMANI:CORAM_DEO;}
 
 function switchCenter(c,btn){
   currentCenter=c;
+  resetImportPreview();
   selectedForBulk=new Set();
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
   document.getElementById('section-dashboard').style.display='none';
@@ -439,7 +460,7 @@ function computeAttendanceStats(centre){
   const weeks=getWeeksWithDays(centre);
   const students=centre==='Milimani'?MILIMANI:CORAM_DEO;
   let P=0,A=0,E=0;
-  const perStudent={};students.forEach(s=>perStudent[s]={P:0,A:0,E:0,marked:0});
+  const perStudent=Object.create(null);students.forEach(s=>perStudent[s]={P:0,A:0,E:0,marked:0});
   const weeklyPct=[];
   weeks.forEach((wk,wi)=>{
     let wP=0,wMarked=0;
@@ -571,7 +592,7 @@ function renderDashboard(){
   const riskHtml=atRisk.length?atRisk.slice(0,15).map(r=>`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft)">
       <div>
-        <span style="font-size:13px;font-weight:500;color:var(--ink)">${r.name}</span>
+        <span style="font-size:13px;font-weight:500;color:var(--ink)">${escapeHtml(r.name)}</span>
         <span class="centre-badge ${r.centre==='Milimani'?'mil':'cor'}" style="margin-left:8px">${r.centre}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -654,18 +675,18 @@ function toggleSelectAll(chk){
 function renderReasonCell(v,kr,abv){
   if(v==='E'){
     const selVal=EXCUSE_REASONS.includes(abv)?abv:(abv?'Other':'');
-    let html=`<select class="absence-input" data-kr="${kr}" onchange="onExcuseReasonChange(this)">`;
+    let html=`<select class="absence-input" data-kr="${escapeHtml(kr)}" onchange="onExcuseReasonChange(this)">`;
     html+=`<option value="" ${selVal===''?'selected':''}>Select reason…</option>`;
     EXCUSE_REASONS.forEach(r=>{html+=`<option value="${r}" ${selVal===r?'selected':''}>${r}</option>`;});
     html+=`<option value="Other" ${selVal==='Other'?'selected':''}>Other</option>`;
     html+='</select>';
     if(selVal==='Other'){
-      html+=`<input class="absence-input" style="margin-top:4px" placeholder="Specify reason…" value="${abv}" data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+      html+=`<input class="absence-input" style="margin-top:4px" placeholder="Specify reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
     }
     return html;
   }
   if(v==='A'){
-    return `<input class="absence-input" placeholder="Enter reason…" value="${abv}" data-kr="${kr}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+    return `<input class="absence-input" placeholder="Enter reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
   }
   return `<input class="absence-input" placeholder="—" value="" disabled style="opacity:.35">`;
 }
@@ -697,14 +718,14 @@ function renderRegister(){
     const v=store[kv]||'none',abv=store[kr]||'';
     const idx=all.indexOf(s);const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td data-label="Select"><input type="checkbox" class="row-chk" data-s="${s}" ${selectedForBulk.has(s)?'checked':''}></td>
+      <td data-label="Select"><input type="checkbox" class="row-chk" data-s="${escapeHtml(s)}" ${selectedForBulk.has(s)?'checked':''}></td>
       <td class="idx-col" style="color:var(--ink-mute);font-size:12px">${idx+1}</td>
-      <td data-label="Student" style="font-weight:${v==='P'?'600':'500'}">${s}</td>
+      <td data-label="Student" style="font-weight:${v==='P'?'600':'500'}">${escapeHtml(s)}</td>
       <td data-label="Attendance">
         <div class="att-wrap">
-          <button class="att-btn ${v==='P'?'st-P':'st-none-P'}" data-s="${s}" data-w="${w}" data-d="${d}" data-v="P">P</button>
-          <button class="att-btn ${v==='A'?'st-A':'st-none-A'}" data-s="${s}" data-w="${w}" data-d="${d}" data-v="A">A</button>
-          <button class="att-btn ${v==='E'?'st-E':'st-none-E'}" data-s="${s}" data-w="${w}" data-d="${d}" data-v="E">E</button>
+          <button class="att-btn ${v==='P'?'st-P':'st-none-P'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="P">P</button>
+          <button class="att-btn ${v==='A'?'st-A':'st-none-A'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="A">A</button>
+          <button class="att-btn ${v==='E'?'st-E':'st-none-E'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="E">E</button>
         </div>
       </td>
       <td data-label="Reason">${renderReasonCell(v,kr,abv)}</td>
@@ -763,7 +784,7 @@ function renderUptime(){
         <div style="font-size:11px;color:var(--ink-soft)">Week total: <strong style="color:${wColor}">${wPct!==null?wPct+'%':'not logged'}</strong></div>
       </div>
       ${sessHtml}
-      <textarea class="week-notes" rows="2" placeholder="Week notes / issues…" data-nk="${nk}" oninput="store[this.dataset.nk]=this.value;touchStore()">${nVal}</textarea>
+      <textarea class="week-notes" rows="2" placeholder="Week notes / issues…" data-nk="${nk}" oninput="store[this.dataset.nk]=this.value;touchStore()">${escapeHtml(nVal)}</textarea>
     `;
     list.appendChild(block);
   });
@@ -838,7 +859,7 @@ async function addReport(){
   const recs=document.getElementById('rpt-recs').value.trim();
   if(!date){alert('Please enter at least a date.');return;}
   if(sb){
-    const{data,error}=await sb.from('weekly_reports').insert({report_date:date,challenges,recommendations:recs}).select('id').single();
+    const{data,error}=await sb.from('weekly_reports').insert({academic_year:academicYear,report_date:date,challenges,recommendations:recs}).select('id').single();
     if(error){alert('Failed to save report to database: '+error.message);return;}
     const lines=challenges.split('\n').map(x=>x.trim()).filter(Boolean);
     if(lines.length&&data){
@@ -875,11 +896,13 @@ async function deleteReport(id){
   if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
 }
 
-async function saveAll(){
-  if(!sb){
-    try{localStorage.setItem('cisco_reg_v4',JSON.stringify({store,reports,challengeItems}));showToast();}catch(e){showToast();}
-    return;
-  }
+let savingPromise=Promise.resolve(true);
+function saveAll(){
+  savingPromise=savingPromise.then(()=>saveAllInternal(),()=>saveAllInternal());
+  return savingPromise;
+}
+async function saveAllInternal(){
+  if(!sb||!databaseReady){alert('Database unavailable. Changes have not been saved.');return false;}
   try{
     // 1. Work out which (centre, date) sessions are touched by data in `store`
     const sessionsNeeded=new Map();
@@ -902,7 +925,7 @@ async function saveAll(){
       upserted.forEach(s=>{sessionIdCache[`${centreNameById[s.centre_id]}|${s.session_date}`]=s.id;});
     }
     // 2. Build attendance, uptime and note rows from `store`
-    const attRows=[],noteRows=[];const upMap=new Map();
+    const attRows=[],clearedRows=[],noteRows=[];const upMap=new Map();
     Object.keys(store).forEach(k=>{
       const parts=k.split('|');const type=parts[0];
       if(type==='att'){
@@ -910,9 +933,10 @@ async function saveAll(){
         const wk=(WEEKS.length&&centre===currentCenter?WEEKS:getWeeksWithDays(centre))[parseInt(w)];
         if(!wk||!wk.sessions[parseInt(d)])return;
         const date=isoDate(wk.sessions[parseInt(d)].date);
-        const sessId=sessionIdCache[`${centre}|${date}`];const studId=studentIdByName[name];
+        const sessId=sessionIdCache[`${centre}|${date}`];const studId=studentIdByName[`${centre}|${name}`];
         if(!sessId||!studId)return;
         const status=store[k];
+        if(status==='none'){clearedRows.push({student_id:studId,session_id:sessId});return;}
         const reason=store[KR(centre,w,d,name)]||null;
         const reasonCode=status==='E'?reasonCodeFor(reason):null;
         attRows.push({student_id:studId,session_id:sessId,status,reason,reason_code:reasonCode});
@@ -928,56 +952,56 @@ async function saveAll(){
         upMap.get(sessId)[field==='planned'?'planned_hours':'actual_hours']=val;
       }else if(type==='note'){
         const[,centre,w]=parts;
-        noteRows.push({centre_id:centreIdByName[centre],week_number:parseInt(w),notes:store[k]});
+        noteRows.push({academic_year:academicYear,centre_id:centreIdByName[centre],week_number:parseInt(w),notes:store[k]});
       }
     });
     if(attRows.length){const{error}=await sb.from('attendance').upsert(attRows,{onConflict:'student_id,session_id'});if(error)throw error;}
+    for(const row of clearedRows){const{error}=await sb.from('attendance').delete().eq('student_id',row.student_id).eq('session_id',row.session_id);if(error)throw error;}
     const upRows=[...upMap.values()];
     if(upRows.length){const{error}=await sb.from('lab_uptime').upsert(upRows,{onConflict:'session_id'});if(error)throw error;}
-    if(noteRows.length){const{error}=await sb.from('week_notes').upsert(noteRows,{onConflict:'centre_id,week_number'});if(error)throw error;}
-    showToast();
+    if(noteRows.length){const{error}=await sb.from('week_notes').upsert(noteRows,{onConflict:'centre_id,academic_year,week_number'});if(error)throw error;}
+    showToast();return true;
   }catch(e){
     console.error('Save to database failed',e);
-    alert('Save failed: '+(e.message||e)+'\n\nCheck your internet connection and try again.');
+    alert('Save failed: '+(e.message||e)+'\n\nCheck your internet connection and try again.');return false;
   }
 }
 function showToast(){
   const t=document.getElementById('toast');t.style.display='inline';setTimeout(()=>t.style.display='none',2000);
 }
 async function loadReportsFromDB(){
-  const{data,error}=await sb.from('weekly_reports').select('id,report_date,challenges,recommendations').order('id',{ascending:false});
-  if(error||!data||!data.length){reports=SEED_REPORTS;return;}
+  const{data,error}=await sb.from('weekly_reports').select('id,report_date,challenges,recommendations').eq('academic_year',academicYear).order('id',{ascending:false});
+  if(error)throw error;
+  if(!data||!data.length){reports=[];return;}
   reports=data.map(r=>({id:r.id,date:r.report_date,challenges:r.challenges||'',recs:r.recommendations||''}));
 }
 async function loadChallengeItemsFromDB(){
   const{data,error}=await sb.from('challenge_items').select('id,report_id,description,resolved').order('id',{ascending:true});
-  if(error||!data){challengeItems=[];return;}
-  challengeItems=data;
+  if(error)throw error;
+  challengeItems=(data||[]).filter(c=>reports.some(r=>r.id===c.report_id));
 }
 async function loadCentresAndStudents(){
   const{data:centres,error:ce}=await sb.from('centres').select('id,name');
   if(ce)throw ce;
   centreIdByName={};centres.forEach(c=>centreIdByName[c.name]=c.id);
-  const{data:students,error:se}=await sb.from('students').select('id,full_name,centre_id').eq('active',true);
-  if(se)throw se;
+  const students=await readAll(()=>sb.from('students').select('id,full_name,centre_id').eq('active',true).eq('academic_year',academicYear).order('id'));
   studentIdByName={};
   const byCentre={'Milimani':[],'Coram Deo':[]};
   const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
   students.forEach(s=>{
-    studentIdByName[s.full_name]=s.id;
+    studentIdByName[`${centreNameById[s.centre_id]}|${s.full_name}`]=s.id;
     const cn=centreNameById[s.centre_id];
     if(byCentre[cn])byCentre[cn].push(s.full_name);
   });
-  if(byCentre['Milimani'].length){MILIMANI.length=0;MILIMANI.push(...byCentre['Milimani'].sort());}
-  if(byCentre['Coram Deo'].length){CORAM_DEO.length=0;CORAM_DEO.push(...byCentre['Coram Deo'].sort());}
+  MILIMANI.length=0;MILIMANI.push(...byCentre['Milimani'].sort());
+  CORAM_DEO.length=0;CORAM_DEO.push(...byCentre['Coram Deo'].sort());
 }
 async function loadAttendanceUptimeNotesFromDB(){
   const dateIndex={'Milimani':buildDateIndex('Milimani'),'Coram Deo':buildDateIndex('Coram Deo')};
   const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
-  const studentNameById={};Object.entries(studentIdByName).forEach(([n,id])=>studentNameById[id]=n);
+  const studentNameById={};Object.entries(studentIdByName).forEach(([n,id])=>studentNameById[id]=n.slice(n.indexOf('|')+1));
 
-  const{data:sessions,error:sxe}=await sb.from('sessions').select('id,centre_id,session_date');
-  if(sxe)throw sxe;
+  const sessions=await readAll(()=>sb.from('sessions').select('id,centre_id,session_date').gte('session_date',`${academicYear}-01-01`).lte('session_date',`${academicYear}-12-31`).order('id'));
   sessionIdCache={};const sessById={};
   sessions.forEach(s=>{
     const centreName=centreNameById[s.centre_id];
@@ -985,8 +1009,8 @@ async function loadAttendanceUptimeNotesFromDB(){
     sessionIdCache[`${centreName}|${s.session_date}`]=s.id;
   });
 
-  const{data:atts,error:axe}=await sb.from('attendance').select('student_id,session_id,status,reason');
-  if(axe)throw axe;
+  const sessionIds=sessions.map(s=>s.id);
+  const atts=sessionIds.length?await readAll(()=>sb.from('attendance').select('id,student_id,session_id,status,reason').in('session_id',sessionIds).order('id')):[];
   atts.forEach(a=>{
     const sess=sessById[a.session_id];if(!sess)return;
     const idx=dateIndex[sess.centreName]&&dateIndex[sess.centreName][sess.date];if(!idx)return;
@@ -995,8 +1019,7 @@ async function loadAttendanceUptimeNotesFromDB(){
     if(a.reason)store[KR(sess.centreName,idx.wi,idx.di,name)]=a.reason;
   });
 
-  const{data:ups,error:uxe}=await sb.from('lab_uptime').select('session_id,planned_hours,actual_hours');
-  if(uxe)throw uxe;
+  const ups=sessionIds.length?await readAll(()=>sb.from('lab_uptime').select('id,session_id,planned_hours,actual_hours').in('session_id',sessionIds).order('id')):[];
   ups.forEach(u=>{
     const sess=sessById[u.session_id];if(!sess)return;
     const idx=dateIndex[sess.centreName]&&dateIndex[sess.centreName][sess.date];if(!idx)return;
@@ -1004,7 +1027,7 @@ async function loadAttendanceUptimeNotesFromDB(){
     if(u.actual_hours!=null)store[KU(sess.centreName,idx.wi,idx.di,'actual')]=u.actual_hours;
   });
 
-  const{data:notes,error:nxe}=await sb.from('week_notes').select('centre_id,week_number,notes');
+  const{data:notes,error:nxe}=await sb.from('week_notes').select('centre_id,week_number,notes').eq('academic_year',academicYear);
   if(nxe)throw nxe;
   notes.forEach(n=>{
     const centreName=centreNameById[n.centre_id];
@@ -1012,44 +1035,24 @@ async function loadAttendanceUptimeNotesFromDB(){
   });
 }
 async function loadData(){
-  if(!sb){
-    setDbStatus('Offline mode (local only)',false);
-    loadLocalFallback();
-    return;
-  }
-  try{
-    await loadCentresAndStudents();
-    await loadAttendanceUptimeNotesFromDB();
-    await loadReportsFromDB();
-    await loadChallengeItemsFromDB();
-    setDbStatus('Connected to database',true);
-  }catch(e){
-    console.error('Supabase load failed, falling back to local storage',e);
-    setDbStatus('Connection failed — using local data',false);
-    loadLocalFallback();
-  }
-}
-function loadLocalFallback(){
-  try{
-    const d=localStorage.getItem('cisco_reg_v4');
-    if(d){const p=JSON.parse(d);store=p.store||{};reports=p.reports||SEED_REPORTS;challengeItems=p.challengeItems||[];}
-    else{reports=SEED_REPORTS;challengeItems=[];}
-  }catch(e){reports=SEED_REPORTS;challengeItems=[];}
-  if(!challengeItems.length){
-    reports.forEach(r=>{
-      (r.challenges||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach((description,i)=>{
-        challengeItems.push({id:`seed-${r.id}-${i}`,report_id:r.id,description,resolved:false});
-      });
-    });
-  }
+  databaseReady=false;store={};sessionIdCache={};
+  MILIMANI.length=0;CORAM_DEO.length=0;
+  if(!sb)throw new Error('Database connection unavailable.');
+  await loadCentresAndStudents();
+  await loadAttendanceUptimeNotesFromDB();
+  await loadReportsFromDB();
+  await loadChallengeItemsFromDB();
+  databaseReady=true;setDbStatus('Connected to database',true);
 }
 function renderAll(){
+  document.getElementById('enrolment-target').textContent=`${currentCenter} — ${academicYear}`;
   WEEKS=getWeeksWithDays(currentCenter);
   document.getElementById('centre-schedule').textContent=CENTER_SCHEDULE[currentCenter];
   initWeekSelect();buildDayTabs();renderRegister();
 }
 async function init(){
-  await loadData();
+  initYearSelect();
+  try{await loadData();}catch(e){setDbStatus('Connection failed',false);document.getElementById('year-message').textContent='Could not load register: '+e.message;}
   WEEKS=getWeeksWithDays(currentCenter);
   const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
   centerView[currentCenter]={week:currentWeek,day:currentDay};

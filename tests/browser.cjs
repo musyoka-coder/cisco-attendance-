@@ -1,0 +1,33 @@
+const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES ? process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright' : 'playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});const page=await browser.newPage();const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/**',route=>route.fulfill({contentType:'application/javascript',body:`
+ const db={centres:[{id:1,name:'Milimani'},{id:2,name:'Coram Deo'}],students:[{id:1,full_name:'Existing Learner',centre_id:1,academic_year:2026,active:true}],sessions:[],attendance:[],lab_uptime:[],week_notes:[],weekly_reports:[],challenge_items:[]};
+ window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{}}})},from(table){let filters=[],range=null,action=null,rows=null;const q={select(){return q},eq(k,v){filters.push(r=>r[k]===v);return q},gte(k,v){filters.push(r=>r[k]>=v);return q},lte(k,v){filters.push(r=>r[k]<=v);return q},in(k,v){filters.push(r=>v.includes(r[k]));return q},order(){return q},range(a,b){range=[a,b];return q},upsert(r){action='upsert';rows=r;return q},delete(){action='delete';return q},then(resolve){let data=db[table].filter(r=>filters.every(f=>f(r)));if(action==='upsert'){for(const r of rows){r.id=r.id||db[table].length+1;db[table].push(r);}data=rows;}if(action==='delete'){db[table]=db[table].filter(r=>!data.includes(r));data=[];}if(range)data=data.slice(range[0],range[1]+1);return Promise.resolve({data,error:null}).then(resolve)}};return q},rpc:async(name,p)=>{let inserted=0;for(const full_name of p.p_names){if(!db.students.some(s=>s.centre_id===p.p_centre_id&&s.academic_year===p.p_academic_year&&s.full_name.toLowerCase()===full_name.toLowerCase())){db.students.push({id:db.students.length+1,full_name,centre_id:p.p_centre_id,academic_year:p.p_academic_year,active:true});inserted++}}return {data:{inserted,skipped:p.p_names.length-inserted},error:null}}})};` }));
+ await page.route('https://cdn.jsdelivr.net/npm/chart.js/**',r=>r.fulfill({contentType:'application/javascript',body:'window.Chart=class {destroy(){}};'}));
+ await page.goto('http://127.0.0.1:8765');
+ await page.waitForFunction(()=>document.querySelector('#reg-body').textContent.includes('Existing Learner'));
+ await page.selectOption('#academic-year','2027');
+ await page.waitForFunction(()=>document.querySelector('#year-message').textContent==='2027 register loaded');
+ assert.equal(await page.locator('#reg-body tr').count(),0);
+ await page.locator('summary').click();
+ await page.fill('#learner-name','New Learner');await page.locator('#learner-form button').click();
+ await page.waitForFunction(()=>document.querySelector('#reg-body').textContent.includes('New Learner'));
+ await page.setInputFiles('#learner-file',{name:'learners.csv',mimeType:'text/csv',buffer:Buffer.from('Full Name\nAlice Test\nAlice Test\nNew Learner\n<bad>\nAnne O\'Neil')});
+ await page.waitForFunction(()=>document.querySelector('#learner-message').textContent.includes('2 ready; 3 skipped'));
+ await page.click('#import-confirm');
+ await page.waitForFunction(()=>document.querySelector('#learner-message').textContent.includes('2 learners added'));
+ assert.equal(await page.locator('#reg-body tr').count(),3);
+ await page.selectOption('#academic-year','2026');await page.waitForFunction(()=>document.querySelector('#year-message').textContent==='2026 register loaded');
+ assert.equal(await page.locator('#reg-body tr').count(),1);
+ await page.selectOption('#academic-year','2027');await page.waitForFunction(()=>document.querySelector('#year-message').textContent==='2027 register loaded');
+ assert.equal(await page.locator('#reg-body tr').count(),3);
+ await page.locator('.tab').nth(1).click();assert.equal(await page.locator('#reg-body tr').count(),0);
+ await page.setViewportSize({width:390,height:844});
+ await page.screenshot({path:'/tmp/cisco-mobile.png',fullPage:true});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'mobile overflow');
+ assert.deepEqual(errors,[]);console.log('PASS: year isolation, single add, CSV preview/import, duplicates, invalid rows, centre isolation, mobile width, no browser errors');
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
