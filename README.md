@@ -23,7 +23,7 @@ Database verification used a rolled-back transaction for batch inserts, retry de
 
 ## Fresh-clone setup
 
-Requires Node 22.13+ and npm (use `.nvmrc`).
+Requires Node 24.22+ and npm (use `.nvmrc`).
 
 ```sh
 git clone https://github.com/musyoka-coder/cisco-attendance-.git

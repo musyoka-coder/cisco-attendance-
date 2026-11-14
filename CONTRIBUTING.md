@@ -1,6 +1,6 @@
 # Contributing
 
-Use Node 22.13 or later and `npm ci`. Run `npm run lint`, `npm test` and `npm run build` before opening a pull request. Build configuration is explained in README.md.
+Use Node 24.22 or later and `npm ci`. Run `npm run lint`, `npm test` and `npm run build` before opening a pull request. Build configuration is explained in README.md.
 
 Keep a behavioral change and its regression tests in the same focused commit. Put mechanical formatting and unrelated refactors in separate commits. Describe the triggering problem, resulting behavior and test evidence in the pull request. Do not manufacture authors, activity, release tags or commits to increase an assessment score.
 
