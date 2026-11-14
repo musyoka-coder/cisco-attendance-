@@ -315,14 +315,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 </footer>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="vendor/xlsx.full.min.js"></script>
 <script src="learner-import.js"></script>
 <script>
 // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
-const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpidXZ1amZuYXRyZWZ6bGFieXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY1NTcsImV4cCI6MjA5OTUyMjU1N30.fZfbZ0GAw22WnCHleO_DA0rqWMsWkN9Lzp9c-gs8a9c';
+const {SUPABASE_URL,SUPABASE_ANON_KEY}=window.APP_CONFIG;
 let sb=null;
 try{
   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);

@@ -1,4 +1,4 @@
-const appDb=window.supabase.createClient('https://jbuvujfnatrefzlabyvx.supabase.co','sb_publishable_tSQigz8x3TcWopMW1xcnbg_8dyfLu3X');
+const appDb=window.supabase.createClient(window.APP_CONFIG.SUPABASE_URL,window.APP_CONFIG.SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const h=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Nairobi'}).format(new Date());

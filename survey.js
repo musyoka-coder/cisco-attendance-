@@ -1,4 +1,4 @@
-const surveyDb=window.supabase.createClient('https://jbuvujfnatrefzlabyvx.supabase.co','sb_publishable_tSQigz8x3TcWopMW1xcnbg_8dyfLu3X',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const surveyDb=window.supabase.createClient(window.APP_CONFIG.SUPABASE_URL,window.APP_CONFIG.SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const surveyParams=new URLSearchParams(location.hash.slice(1));
 const surveyToken=surveyParams.get('survey');let surveyDefinition=null;
 const surveyMessage=document.getElementById('survey-message');

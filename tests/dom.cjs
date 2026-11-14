@@ -5,7 +5,7 @@ const {JSDOM}=require('jsdom');
  const dom=new JSDOM(html,{url:'https://register.test',runScripts:'outside-only'}),w=dom.window;
  const browserTest=fs.readFileSync('tests/browser.cjs','utf8');
  const mock=browserTest.split("body:`")[1].split('` }));')[0];
- w.eval(mock);w.Chart=class{destroy(){}};w.alert=message=>{throw Error(message)};
+ w.APP_CONFIG={SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_test'};w.eval(mock);w.Chart=class{destroy(){}};w.alert=message=>{throw Error(message)};
  w.eval(fs.readFileSync('vendor/xlsx.full.min.js','utf8'));
  w.eval(fs.readFileSync('learner-import.js','utf8')+'\n'+html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('checkSession();',''));
  await w.init();assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
