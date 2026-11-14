@@ -1,3 +1,4 @@
+/* exported initYearSelect, changeAcademicYear, downloadLearnerTemplate, previewLearnerFile, addLearner, confirmLearnerImport */
 /* Spreadsheet parsing is kept separate so it can be tested without Supabase. */
 const LearnerImport = (() => {
   const normalize = value => String(value ?? '').normalize('NFC').trim().replace(/\s+/g, ' ');
@@ -5,6 +6,7 @@ const LearnerImport = (() => {
   function validate(value) {
     const name = normalize(value);
     if (name.length < 2 || name.length > 120) return 'Name must contain 2–120 characters';
+  // eslint-disable-next-line no-control-regex -- Reject control characters in learner names.
     if (!/\p{L}/u.test(name) || /[<>|\x00-\x1f\x7f]/.test(name)) return 'Invalid name';
     if (/^[=+@]/.test(name)) return 'Formula-like names are not accepted';
     return '';

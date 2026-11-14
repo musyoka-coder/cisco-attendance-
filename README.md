@@ -21,11 +21,43 @@ The migration was applied to the connected Cisco project. It is a one-time migra
 
 Database verification used a rolled-back transaction for batch inserts, retry deduplication, centre/year separation and invalid-batch rejection. Afterwards: 74 original learners, 4,771 attendance records, zero test learners, and no anonymous RPC permission.
 
-## Tests
+## Fresh-clone setup
 
-Run `npm ci` then `npm test`. Parser tests cover actual XLSX/XLS round trips, validation and duplicate handling. DOM tests exercise adding learners, importing CSV and switching year/centre using a simulated database. These are separate from the live database transaction tests.
+Requires Node 22.13+ and npm (use `.nvmrc`).
 
-An optional Playwright script is available at `tests/browser.cjs`; serve the project on port 8765 and run it with Playwright installed. Set `CHROMIUM_PATH` if needed. Browser rendering could not be checked in the development environment because Chromium launch was blocked by its socket restrictions.
+```sh
+git clone https://github.com/musyoka-coder/cisco-attendance-.git
+cd cisco-attendance-
+npm ci
+npm test
+cp .env.example .env
+# Edit .env with your Supabase project's public URL and publishable key.
+npm run build
+npm start
+```
+
+Open http://127.0.0.1:4173. On Windows, copy `.env.example` to `.env` using Explorer or `Copy-Item`. An existing, configured Supabase database is required for real sign-in and data; the migrations extend the original register schema and do not bootstrap an empty project. Unit and DOM tests need no Supabase account or network services.
+
+### Environment
+
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` are the only required build variables. Supply them in the ignored `.env` file or hosting build environment. `npm run build` validates them and generates `dist/config.js`, loaded before application scripts. Never commit `.env`, `config.js`, secret keys or service-role keys. Public keys remain visible to browsers by design; authorization is enforced by database RLS and RPC checks. Moving settings out of source is configuration hygiene, not a way to hide browser keys.
+
+### Automated verification
+
+```sh
+npm run lint
+npm run format:check
+npm run test:coverage
+npm run build
+npx playwright install --with-deps chromium
+npm run test:browser
+```
+
+The browser install is a one-time download of Playwright-managed Chromium and operating-system dependencies (Linux may request administrator privileges). The browser command starts and stops its own local server, uses a simulated Supabase service, and needs no `CHROMIUM_PATH` or Codex-specific variables. It tests the built `dist` directory; build first. CI performs all these steps on pushes and pull requests using dummy public settings, never production data.
+
+Coverage is measured and gated for the parser/import module, appraisal calculations and configuration validation. It is not a claim of coverage for inline HTML controllers, SQL, or browser-evaluated DOM scripts. The DOM suite separately exercises all ten appraisal forms and survey flows. `tests/appraisal-database.sql` is a separate rolled-back integration test for an existing staging database; it is not run by `npm test`.
+
+Use `npm run format` to apply Prettier. Dependabot checks npm and Actions dependencies weekly. See CONTRIBUTING.md for architecture and commit guidance.
 
 SheetJS CE 0.20.3 is vendored from `https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js`; its Apache 2.0 license is included in `vendor`.
 

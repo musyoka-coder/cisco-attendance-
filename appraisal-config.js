@@ -1,3 +1,4 @@
+/* exported STATUS_LABELS */
 const APPRAISAL_MODULES = {
  equipment:{label:'Equipment',intro:'Maintain an equipment inventory and link maintenance to its asset tag.',fields:[['asset_tag','Asset tag / inventory number','text',true],['model','Make and model','text'],['serial','Serial number','text'],['location','Room / location','text'],['condition','Condition','select',false,['working','needs_repair','out_of_service']]]},
  maintenance:{label:'Maintenance logs',intro:'Plan daily or weekly checks. Record work, evidence and the actual submission date separately.',fields:[['asset','Equipment / asset tag','text',true],['frequency','Log frequency','select',true,['daily','weekly','preventive','repair']],['diagnosis','Fault or inspection findings','textarea'],['action','Action taken','textarea'],['downtime_hours','Downtime hours','number'],['submitted_on','Date submitted','date'],['recipient','Submitted to','text']]},

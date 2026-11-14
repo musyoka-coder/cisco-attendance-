@@ -13,7 +13,7 @@ const wait=async predicate=>{for(let n=0;n<100;n++){if(predicate())return;await 
  for(const[kind,config]of Object.entries(modules)){
   w.openRecord(kind);const form=w.document.querySelector('#record-form');form.elements.title.value='Test '+kind;form.elements.record_date.value='2026-11-15';
   if(config.learner)form.elements.student_id.value='1';
-  for(const[name,,type,required]of config.fields){const el=form.elements['detail_'+name];if(type==='number')el.value=name==='maximum'?'10':'5';else if(type==='text'||type==='textarea')el.value='Test evidence';else if(type==='date')el.value='2026-11-15';else if(type==='learners')el.options[0].selected=true;}
+  for(const[name,,type]of config.fields){const el=form.elements['detail_'+name];if(type==='number')el.value=name==='maximum'?'10':'5';else if(type==='text'||type==='textarea')el.value='Test evidence';else if(type==='date')el.value='2026-11-15';else if(type==='learners')el.options[0].selected=true;}
   await w.saveRecord({preventDefault(){},target:form});assert.equal(w.document.querySelector('#editor').open,false,kind+' saved');
  }
  assert.equal(db.appraisal_records.length,10);

@@ -3,15 +3,14 @@ const {JSDOM}=require('jsdom');
 (async()=>{
  const html=fs.readFileSync('index.html','utf8');
  const dom=new JSDOM(html,{url:'https://register.test',runScripts:'outside-only'}),w=dom.window;
- const browserTest=fs.readFileSync('tests/browser.cjs','utf8');
- const mock=browserTest.split("body:`")[1].split('` }));')[0];
+ const mock=fs.readFileSync('tests/fixtures/supabase-mock.js','utf8');
  w.APP_CONFIG={SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_test'};w.eval(mock);w.Chart=class{destroy(){}};w.alert=message=>{throw Error(message)};
  w.eval(fs.readFileSync('vendor/xlsx.full.min.js','utf8'));
  w.eval(fs.readFileSync('learner-import.js','utf8')+'\n'+html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('checkSession();',''));
  await w.init();assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
  await w.changeAcademicYear('2027');assert.equal(w.document.querySelectorAll('#reg-body tr').length,0);
  assert.ok(w.getWeeksWithDays('Milimani').every(week=>week.sessions.every(s=>s.date.getFullYear()===2027)));
- const paged=await w.readAll(()=>({range:async(a,b)=>({data:Array.from({length:Math.min(1000,2501-a)},(_,i)=>a+i),error:null})}));
+ const paged=await w.readAll(()=>({range:async(a,_b)=>({data:Array.from({length:Math.min(1000,2501-a)},(_,i)=>a+i),error:null})}));
  assert.equal(paged.length,2501);
  w.document.querySelector('#learner-name').value='New Learner';await w.addLearner();
  assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
