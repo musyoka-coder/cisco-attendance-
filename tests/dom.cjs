@@ -1,26 +1,79 @@
-const fs=require('node:fs'),assert=require('node:assert/strict');
-const {JSDOM}=require('jsdom');
-(async()=>{
- const html=fs.readFileSync('index.html','utf8');
- const dom=new JSDOM(html,{url:'https://register.test',runScripts:'outside-only'}),w=dom.window;
- const mock=fs.readFileSync('tests/fixtures/supabase-mock.js','utf8');
- w.APP_CONFIG={SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_test'};w.eval(mock);w.Chart=class{destroy(){}};w.alert=message=>{throw Error(message)};
- w.eval(fs.readFileSync('vendor/xlsx.full.min.js','utf8'));
- w.eval(fs.readFileSync('learner-import.js','utf8')+'\n'+html.match(/<script>([\s\S]*?)<\/script>/)[1].replace('checkSession();',''));
- await w.init();assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
- await w.changeAcademicYear('2027');assert.equal(w.document.querySelectorAll('#reg-body tr').length,0);
- assert.ok(w.getWeeksWithDays('Milimani').every(week=>week.sessions.every(s=>s.date.getFullYear()===2027)));
- const paged=await w.readAll(()=>({range:async(a,_b)=>({data:Array.from({length:Math.min(1000,2501-a)},(_,i)=>a+i),error:null})}));
- assert.equal(paged.length,2501);
- w.document.querySelector('#learner-name').value='New Learner';await w.addLearner();
- assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
- const buffer=Buffer.from("Full Name\nAlice Test\nAlice Test\nNew Learner\n<bad>\nAnne O'Neil");
- await w.previewLearnerFile({name:'learners.csv',size:buffer.length,arrayBuffer:async()=>w.Uint8Array.from(buffer).buffer});
- assert.match(w.document.querySelector('#learner-message').textContent,/2 ready; 3 skipped/);
- await w.confirmLearnerImport();assert.equal(w.document.querySelectorAll('#reg-body tr').length,3);
- await w.changeAcademicYear('2026');assert.equal(w.document.querySelectorAll('#reg-body tr').length,1);
- await w.changeAcademicYear('2027');assert.equal(w.document.querySelectorAll('#reg-body tr').length,3);
- w.switchCenter('Coram Deo',w.document.querySelectorAll('.tab')[1]);assert.equal(w.document.querySelectorAll('#reg-body tr').length,0);
- console.log('PASS: DOM flow for empty cohort, add learner, preview/import, duplicate validation, year and centre isolation');
- w.close();
-})().catch(e=>{console.error(e);process.exit(1)});
+const fs = require('node:fs'),
+  assert = require('node:assert/strict');
+const { JSDOM } = require('jsdom');
+(async () => {
+  const html = fs.readFileSync('index.html', 'utf8');
+  const dom = new JSDOM(html, {
+      url: 'https://register.test',
+      runScripts: 'outside-only',
+    }),
+    w = dom.window;
+  const mock = fs.readFileSync('tests/fixtures/supabase-mock.js', 'utf8');
+  w.APP_CONFIG = {
+    SUPABASE_URL: 'https://example.supabase.co',
+    SUPABASE_ANON_KEY: 'sb_publishable_test',
+  };
+  w.eval(mock);
+  w.Chart = class {
+    destroy() {}
+  };
+  w.alert = (message) => {
+    throw Error(message);
+  };
+  w.eval(fs.readFileSync('vendor/xlsx.full.min.js', 'utf8'));
+  w.eval(
+    fs.readFileSync('learner-import.js', 'utf8') +
+      '\n' +
+      html
+        .match(/<script>([\s\S]*?)<\/script>/)[1]
+        .replace('checkSession();', ''),
+  );
+  await w.init();
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 1);
+  await w.changeAcademicYear('2027');
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 0);
+  assert.ok(
+    w
+      .getWeeksWithDays('Milimani')
+      .every((week) =>
+        week.sessions.every((s) => s.date.getFullYear() === 2027),
+      ),
+  );
+  const paged = await w.readAll(() => ({
+    range: async (a, _b) => ({
+      data: Array.from({ length: Math.min(1000, 2501 - a) }, (_, i) => a + i),
+      error: null,
+    }),
+  }));
+  assert.equal(paged.length, 2501);
+  w.document.querySelector('#learner-name').value = 'New Learner';
+  await w.addLearner();
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 1);
+  const buffer = Buffer.from(
+    "Full Name\nAlice Test\nAlice Test\nNew Learner\n<bad>\nAnne O'Neil",
+  );
+  await w.previewLearnerFile({
+    name: 'learners.csv',
+    size: buffer.length,
+    arrayBuffer: async () => w.Uint8Array.from(buffer).buffer,
+  });
+  assert.match(
+    w.document.querySelector('#learner-message').textContent,
+    /2 ready; 3 skipped/,
+  );
+  await w.confirmLearnerImport();
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 3);
+  await w.changeAcademicYear('2026');
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 1);
+  await w.changeAcademicYear('2027');
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 3);
+  w.switchCenter('Coram Deo', w.document.querySelectorAll('.tab')[1]);
+  assert.equal(w.document.querySelectorAll('#reg-body tr').length, 0);
+  console.log(
+    'PASS: DOM flow for empty cohort, add learner, preview/import, duplicate validation, year and centre isolation',
+  );
+  w.close();
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
