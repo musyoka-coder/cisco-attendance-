@@ -1,0 +1,6 @@
+{
+  "name": "cisco-attendance-register",
+  "private": true,
+  "scripts": {"test": "node --test tests/learner-import.test.cjs && node tests/dom.cjs"},
+  "devDependencies": {"jsdom": "26.1.0"}
+}
