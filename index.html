@@ -1,1154 +1,2687 @@
-
 <style>
-[hidden]{display:none!important}
-:root{
-  --navy:#1F3864;--navy-dark:#152A4E;--navy-deep:#0F1F3D;
-  --ink:#1A2436;--ink-soft:#4B5768;--ink-mute:#8B96A8;
-  --line:#E4E9F1;--line-soft:#EEF1F6;
-  --surface:#FFFFFF;--surface-alt:#F7F9FC;--page:#EEF1F6;
-  --blue:#2F6FED;
-  --green:#1E7A46;--green-bg:#E7F6EC;--green-line:#B7DFC4;
-  --red:#C0392B;--red-bg:#FDECEA;--red-line:#F1B3AC;
-  --amber:#A9660B;--amber-bg:#FBEEDC;--amber-line:#EFC98A;
-  --radius-lg:14px;--radius-md:10px;--radius-sm:7px;
-  --shadow-card:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06);
-  --shadow-pop:0 8px 24px rgba(16,24,40,.10);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--page);color:var(--ink)}
-.app{padding:1rem;max-width:1160px;margin:0 auto}
-.top-bar{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:var(--radius-lg);padding:1.1rem 1.4rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:var(--shadow-card)}
-.top-bar h1{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.01em}
-.top-bar p{font-size:11.5px;color:#B5D4F4;margin-top:2px}
-.top-bar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.tabs{display:flex;gap:6px;margin-bottom:.9rem;overflow-x:auto;padding-bottom:2px}
-.tab{padding:8px 20px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13px;cursor:pointer;color:var(--ink-soft);transition:all .15s;white-space:nowrap;font-weight:500}
-.tab.active{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:var(--shadow-card)}
-.tab:hover:not(.active){border-color:var(--navy);color:var(--navy)}
-.section-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
-.stab{padding:6px 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;cursor:pointer;color:var(--ink-soft);font-weight:500;transition:all .15s}
-.stab.active{background:var(--navy-dark);color:#fff;border-color:var(--navy-dark)}
-.stab:hover:not(.active){border-color:var(--navy)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:1.1rem 1.3rem;margin-bottom:1rem;box-shadow:var(--shadow-card)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px;margin-bottom:1rem}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:.75rem .9rem}
-.stat-label{font-size:10.5px;color:var(--ink-mute);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.stat-val{font-size:21px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
-.stat-val.green{color:var(--green)}
-.stat-val.red{color:var(--red)}
-.reg-table{width:100%;border-collapse:collapse;font-size:13px}
-.reg-table th{background:var(--navy);color:#fff;padding:10px 12px;text-align:left;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
-.reg-table th:first-child{border-top-left-radius:var(--radius-lg)}
-.reg-table th:last-child{border-top-right-radius:var(--radius-lg)}
-.reg-table td{padding:9px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink);vertical-align:middle}
-.reg-table tr:nth-child(even) td{background:var(--surface-alt)}
-.reg-table tr:hover td{background:#EAF1FD}
-.reg-table tr:last-child td{border-bottom:none}
-.att-wrap{display:flex;gap:4px;justify-content:center}
-.att-btn{width:33px;height:31px;border-radius:8px;border:1.5px solid transparent;cursor:pointer;font-size:11px;font-weight:700;transition:all .12s;display:inline-flex;align-items:center;justify-content:center;letter-spacing:.3px}
-.att-btn.st-P{background:var(--green);color:#fff;border-color:var(--green)}
-.att-btn.st-A{background:var(--red);color:#fff;border-color:var(--red)}
-.att-btn.st-E{background:var(--amber);color:#fff;border-color:var(--amber)}
-.att-btn.st-none-P{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
-.att-btn.st-none-A{background:var(--red-bg);color:var(--red);border-color:var(--red-line)}
-.att-btn.st-none-E{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
-.att-btn:hover{opacity:.85;transform:translateY(-1px)}
-.bulk-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:.7rem 1rem;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:10px}
-.bulk-bar span{font-size:12px;color:var(--ink-soft);font-weight:600}
-.bulk-btn{padding:6px 15px;border-radius:999px;border:1.5px solid;cursor:pointer;font-size:12px;font-weight:600;transition:all .12s}
-.bulk-btn.all-p{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
-.bulk-btn.all-a{background:var(--red-bg);color:var(--red);border-color:var(--red-line)}
-.bulk-btn.clear{background:var(--surface);color:var(--ink-soft);border-color:var(--line)}
-.bulk-btn:hover{filter:brightness(.96)}
-.absence-input{width:100%;font-size:12px;padding:6px 9px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink)}
-.absence-input:focus{outline:none;border-color:var(--blue);background:var(--surface)}
-.day-tabs{display:flex;gap:5px;flex-wrap:wrap}
-.day-tab{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:12px;cursor:pointer;color:var(--ink-soft);font-weight:500}
-.day-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
-.uptime-week{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius-lg);padding:1rem;margin-bottom:10px}
-.session-row{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);padding:.65rem .9rem;display:grid;grid-template-columns:120px 1fr;align-items:center;gap:8px;margin-bottom:6px}
-.uptime-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;flex:1;min-width:50px}
-.uptime-fill{height:100%;border-radius:3px;transition:width .2s}
-.uptime-fill.good{background:var(--green)}.uptime-fill.warn{background:var(--amber)}.uptime-fill.bad{background:var(--red)}.uptime-fill.empty{background:var(--line)}
-.week-notes{width:100%;font-size:12px;padding:6px 9px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:none;margin-top:8px;font-family:inherit}
-.week-notes:focus{outline:none;border-color:var(--blue)}
-.report-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-card)}
-.report-header{background:var(--navy);padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.report-header h3{font-size:13px;font-weight:600;color:#fff}
-.report-header span{font-size:11px;color:#B5D4F4}
-.report-body{padding:1.1rem;display:none}
-.report-body.open{display:block}
-.report-section{margin-bottom:12px}
-.report-section h4{font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em}
-.report-section p,.report-item{font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:4px}
-.challenge-item{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;line-height:1.5}
-.challenge-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px}
-.rec-item{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;line-height:1.5}
-.rec-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px}
-.centre-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600}
-.centre-badge.mil{background:#E6F1FB;color:#0C447C}
-.centre-badge.cor{background:var(--green-bg);color:#27500A}
-.centre-badge.both{background:#EEEDFE;color:#3C3489}
-.new-report-form textarea{width:100%;font-size:12.5px;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);resize:vertical;margin-bottom:10px;font-family:inherit}
-.new-report-form textarea:focus{outline:none;border-color:var(--blue);background:var(--surface)}
-.new-report-form input{width:100%;font-size:12.5px;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);margin-bottom:10px}
-.new-report-form input:focus{outline:none;border-color:var(--blue);background:var(--surface)}
-.form-label{font-size:11px;color:var(--ink-soft);margin-bottom:4px;display:block;font-weight:600}
-.add-btn{padding:8px 18px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-md);font-size:12.5px;cursor:pointer;font-weight:600}
-.add-btn:hover{filter:brightness(1.1)}
-.save-btn{padding:8px 18px;background:#fff;color:var(--navy);border:none;border-radius:var(--radius-md);font-size:13px;cursor:pointer;font-weight:600}
-.save-btn:hover{filter:brightness(.96)}
-.saved-toast{font-size:12px;color:#9FE1CB;display:none;font-weight:500}
-.pill{background:rgba(255,255,255,.14);color:#DCEBFB;border-radius:999px;padding:4px 12px;font-size:11px;font-weight:500}
-.week-sel select{font-size:13px;padding:6px 12px;border-radius:var(--radius-md);border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font-weight:500}
-.uptime-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem}
-.login-overlay{position:fixed;inset:0;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem}
-.login-box{background:#FFFFFF;border-radius:16px;padding:2rem;width:340px;max-width:100%;box-shadow:var(--shadow-pop)}
-.login-box h2{font-size:18px;color:var(--navy);margin-bottom:4px;font-weight:700}
-.login-box p{font-size:12.5px;color:var(--ink-soft);margin-bottom:1.3rem}
-.login-box input{width:100%;font-size:13.5px;padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink);margin-bottom:10px}
-.login-box input::placeholder{color:var(--ink-mute)}
-.login-box input:focus{outline:none;border-color:var(--blue);background:#fff}
-.login-box button{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13.5px;cursor:pointer;font-weight:600}
-.login-box button:hover{filter:brightness(1.1)}
-.login-error{font-size:11.5px;color:var(--red);margin-top:8px;min-height:14px}
-.logout-link{font-size:11.5px;color:#B5D4F4;cursor:pointer;text-decoration:underline}
+  [hidden] {
+    display: none !important;
+  }
+  :root {
+    --navy: #1f3864;
+    --navy-dark: #152a4e;
+    --navy-deep: #0f1f3d;
+    --ink: #1a2436;
+    --ink-soft: #4b5768;
+    --ink-mute: #8b96a8;
+    --line: #e4e9f1;
+    --line-soft: #eef1f6;
+    --surface: #ffffff;
+    --surface-alt: #f7f9fc;
+    --page: #eef1f6;
+    --blue: #2f6fed;
+    --green: #1e7a46;
+    --green-bg: #e7f6ec;
+    --green-line: #b7dfc4;
+    --red: #c0392b;
+    --red-bg: #fdecea;
+    --red-line: #f1b3ac;
+    --amber: #a9660b;
+    --amber-bg: #fbeedc;
+    --amber-line: #efc98a;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 7px;
+    --shadow-card:
+      0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --shadow-pop: 0 8px 24px rgba(16, 24, 40, 0.1);
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+      sans-serif;
+    background: var(--page);
+    color: var(--ink);
+  }
+  .app {
+    padding: 1rem;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+  .top-bar {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: var(--shadow-card);
+  }
+  .top-bar h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .top-bar p {
+    font-size: 11.5px;
+    color: #b5d4f4;
+    margin-top: 2px;
+  }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 0.9rem;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .tab {
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .tab.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+    box-shadow: var(--shadow-card);
+  }
+  .tab:hover:not(.active) {
+    border-color: var(--navy);
+    color: var(--navy);
+  }
+  .section-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .stab {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 12.5px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .stab.active {
+    background: var(--navy-dark);
+    color: #fff;
+    border-color: var(--navy-dark);
+  }
+  .stab:hover:not(.active) {
+    border-color: var(--navy);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-card);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 0.9rem;
+  }
+  .stat-label {
+    font-size: 10.5px;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .stat-val {
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .stat-val.green {
+    color: var(--green);
+  }
+  .stat-val.red {
+    color: var(--red);
+  }
+  .reg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .reg-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .reg-table th:first-child {
+    border-top-left-radius: var(--radius-lg);
+  }
+  .reg-table th:last-child {
+    border-top-right-radius: var(--radius-lg);
+  }
+  .reg-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink);
+    vertical-align: middle;
+  }
+  .reg-table tr:nth-child(even) td {
+    background: var(--surface-alt);
+  }
+  .reg-table tr:hover td {
+    background: #eaf1fd;
+  }
+  .reg-table tr:last-child td {
+    border-bottom: none;
+  }
+  .att-wrap {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  .att-btn {
+    width: 33px;
+    height: 31px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all 0.12s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.3px;
+  }
+  .att-btn.st-P {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+  }
+  .att-btn.st-A {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+  .att-btn.st-E {
+    background: var(--amber);
+    color: #fff;
+    border-color: var(--amber);
+  }
+  .att-btn.st-none-P {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green-line);
+  }
+  .att-btn.st-none-A {
+    background: var(--red-bg);
+    color: var(--red);
+    border-color: var(--red-line);
+  }
+  .att-btn.st-none-E {
+    background: var(--amber-bg);
+    color: var(--amber);
+    border-color: var(--amber-line);
+  }
+  .att-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+  }
+  .bulk-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.7rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+  }
+  .bulk-bar span {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .bulk-btn {
+    padding: 6px 15px;
+    border-radius: 999px;
+    border: 1.5px solid;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.12s;
+  }
+  .bulk-btn.all-p {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: var(--green-line);
+  }
+  .bulk-btn.all-a {
+    background: var(--red-bg);
+    color: var(--red);
+    border-color: var(--red-line);
+  }
+  .bulk-btn.clear {
+    background: var(--surface);
+    color: var(--ink-soft);
+    border-color: var(--line);
+  }
+  .bulk-btn:hover {
+    filter: brightness(0.96);
+  }
+  .absence-input {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 9px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface-alt);
+    color: var(--ink);
+  }
+  .absence-input:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--surface);
+  }
+  .day-tabs {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .day-tab {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .day-tab.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .uptime-week {
+    background: var(--surface-alt);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 10px;
+  }
+  .session-row {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0.65rem 0.9rem;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .uptime-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+    flex: 1;
+    min-width: 50px;
+  }
+  .uptime-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.2s;
+  }
+  .uptime-fill.good {
+    background: var(--green);
+  }
+  .uptime-fill.warn {
+    background: var(--amber);
+  }
+  .uptime-fill.bad {
+    background: var(--red);
+  }
+  .uptime-fill.empty {
+    background: var(--line);
+  }
+  .week-notes {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 9px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    resize: none;
+    margin-top: 8px;
+    font-family: inherit;
+  }
+  .week-notes:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+  .report-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .report-header {
+    background: var(--navy);
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .report-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .report-header span {
+    font-size: 11px;
+    color: #b5d4f4;
+  }
+  .report-body {
+    padding: 1.1rem;
+    display: none;
+  }
+  .report-body.open {
+    display: block;
+  }
+  .report-section {
+    margin-bottom: 12px;
+  }
+  .report-section h4 {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--line);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .report-section p,
+  .report-item {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+  .challenge-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .challenge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .rec-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .rec-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .centre-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .centre-badge.mil {
+    background: #e6f1fb;
+    color: #0c447c;
+  }
+  .centre-badge.cor {
+    background: var(--green-bg);
+    color: #27500a;
+  }
+  .centre-badge.both {
+    background: #eeedfe;
+    color: #3c3489;
+  }
+  .new-report-form textarea {
+    width: 100%;
+    font-size: 12.5px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface-alt);
+    color: var(--ink);
+    resize: vertical;
+    margin-bottom: 10px;
+    font-family: inherit;
+  }
+  .new-report-form textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--surface);
+  }
+  .new-report-form input {
+    width: 100%;
+    font-size: 12.5px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface-alt);
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .new-report-form input:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: var(--surface);
+  }
+  .form-label {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+    display: block;
+    font-weight: 600;
+  }
+  .add-btn {
+    padding: 8px 18px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .add-btn:hover {
+    filter: brightness(1.1);
+  }
+  .save-btn {
+    padding: 8px 18px;
+    background: #fff;
+    color: var(--navy);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .save-btn:hover {
+    filter: brightness(0.96);
+  }
+  .saved-toast {
+    font-size: 12px;
+    color: #9fe1cb;
+    display: none;
+    font-weight: 500;
+  }
+  .pill {
+    background: rgba(255, 255, 255, 0.14);
+    color: #dcebfb;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .week-sel select {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .uptime-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--navy-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+  }
+  .login-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 340px;
+    max-width: 100%;
+    box-shadow: var(--shadow-pop);
+  }
+  .login-box h2 {
+    font-size: 18px;
+    color: var(--navy);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .login-box p {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 1.3rem;
+  }
+  .login-box input {
+    width: 100%;
+    font-size: 13.5px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--surface-alt);
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .login-box input::placeholder {
+    color: var(--ink-mute);
+  }
+  .login-box input:focus {
+    outline: none;
+    border-color: var(--blue);
+    background: #fff;
+  }
+  .login-box button {
+    width: 100%;
+    padding: 11px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .login-box button:hover {
+    filter: brightness(1.1);
+  }
+  .login-error {
+    font-size: 11.5px;
+    color: var(--red);
+    margin-top: 8px;
+    min-height: 14px;
+  }
+  .logout-link {
+    font-size: 11.5px;
+    color: #b5d4f4;
+    cursor: pointer;
+    text-decoration: underline;
+  }
 
-/* ---- Mobile: register table becomes stacked cards ---- */
-@media (max-width:680px){
-  .app{padding:.6rem}
-  .top-bar{padding:.9rem 1rem}
-  .top-bar h1{font-size:13.5px}
-  .top-bar p{font-size:10.5px}
-  .card{padding:.9rem}
-  .reg-table thead{display:none}
-  .reg-table,.reg-table tbody,.reg-table tr,.reg-table td{display:block;width:100%}
-  .reg-table tr{border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:8px;padding:.6rem .8rem;background:var(--surface)}
-  .reg-table tr:nth-child(even){background:var(--surface)}
-  .reg-table td{border-bottom:none;padding:5px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .reg-table td[data-label]::before{content:attr(data-label);font-size:10px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
-  .reg-table td.idx-col{display:none}
-  .att-wrap{justify-content:flex-end}
-  .session-row{grid-template-columns:1fr}
-  .login-box{padding:1.5rem 1.3rem;border-radius:14px}
-  .login-box h2{font-size:16px}
-  .login-box input{font-size:16px;padding:11px 12px}
-  .login-box button{padding:12px;font-size:14px}
-}
-@media (max-width:400px){
-  .login-box{width:100%}
-}
+  /* ---- Mobile: register table becomes stacked cards ---- */
+  @media (max-width: 680px) {
+    .app {
+      padding: 0.6rem;
+    }
+    .top-bar {
+      padding: 0.9rem 1rem;
+    }
+    .top-bar h1 {
+      font-size: 13.5px;
+    }
+    .top-bar p {
+      font-size: 10.5px;
+    }
+    .card {
+      padding: 0.9rem;
+    }
+    .reg-table thead {
+      display: none;
+    }
+    .reg-table,
+    .reg-table tbody,
+    .reg-table tr,
+    .reg-table td {
+      display: block;
+      width: 100%;
+    }
+    .reg-table tr {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      padding: 0.6rem 0.8rem;
+      background: var(--surface);
+    }
+    .reg-table tr:nth-child(even) {
+      background: var(--surface);
+    }
+    .reg-table td {
+      border-bottom: none;
+      padding: 5px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .reg-table td[data-label]::before {
+      content: attr(data-label);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+    .reg-table td.idx-col {
+      display: none;
+    }
+    .att-wrap {
+      justify-content: flex-end;
+    }
+    .session-row {
+      grid-template-columns: 1fr;
+    }
+    .login-box {
+      padding: 1.5rem 1.3rem;
+      border-radius: 14px;
+    }
+    .login-box h2 {
+      font-size: 16px;
+    }
+    .login-box input {
+      font-size: 16px;
+      padding: 11px 12px;
+    }
+    .login-box button {
+      padding: 12px;
+      font-size: 14px;
+    }
+  }
+  @media (max-width: 400px) {
+    .login-box {
+      width: 100%;
+    }
+  }
 </style>
 
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <h2>CISCO Training Programme</h2>
     <p>Sign in to access student records</p>
-    <input type="email" id="login-email" placeholder="Email">
-    <input type="password" id="login-password" placeholder="Password">
+    <input type="email" id="login-email" placeholder="Email" />
+    <input type="password" id="login-password" placeholder="Password" />
     <button onclick="doLogin()">Sign in</button>
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
-<div class="app" id="app-root" style="display:none">
-<div class="top-bar">
-  <div>
-    <h1>Missions of Hope International — CISCO Training Programme</h1>
-    <p>Grade 8 · Attendance, Lab Uptime &amp; Weekly Reports · Year-based register &nbsp;|&nbsp; Trainer: Nicholus Mutiso</p>
+<div class="app" id="app-root" style="display: none">
+  <div class="top-bar">
+    <div>
+      <h1>Missions of Hope International — CISCO Training Programme</h1>
+      <p>
+        Grade 8 · Attendance, Lab Uptime &amp; Weekly Reports · Year-based
+        register &nbsp;|&nbsp; Trainer: Nicholus Mutiso
+      </p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+      <span class="pill" id="current-week-label"></span>
+      <span class="pill" id="db-status" style="display: none">Connecting…</span>
+      <span style="font-size: 11px; color: #b5d4f4" id="centre-schedule"></span>
+      <button class="save-btn" onclick="saveAll()">Save data</button>
+      <span class="saved-toast" id="toast">Saved!</span>
+      <span class="logout-link" onclick="doLogout()">Sign out</span>
+    </div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span class="pill" id="current-week-label"></span>
-    <span class="pill" id="db-status" style="display:none">Connecting…</span>
-    <span style="font-size:11px;color:#B5D4F4" id="centre-schedule"></span>
-    <button class="save-btn" onclick="saveAll()">Save data</button>
-    <span class="saved-toast" id="toast">Saved!</span>
-    <span class="logout-link" onclick="doLogout()">Sign out</span>
+
+  <div class="card" style="margin: 12px 0">
+    <label for="academic-year">Academic year: </label
+    ><select
+      id="academic-year"
+      onchange="changeAcademicYear(this.value)"
+    ></select
+    ><span id="year-message" role="status" style="margin-left: 12px"></span>
   </div>
-</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchCenter('Milimani', this)">
+      Milimani Centre
+    </button>
+    <button class="tab" onclick="switchCenter('Coram Deo', this)">
+      Coram Deo Centre
+    </button>
+    <button class="tab" onclick="showDashboard(this)">📊 Dashboard</button>
+    <a class="tab" href="appraisal.html" style="text-decoration: none"
+      >Appraisal &amp; surveys</a
+    >
+  </div>
 
-<div class="card" style="margin:12px 0"><label for="academic-year">Academic year: </label><select id="academic-year" onchange="changeAcademicYear(this.value)"></select><span id="year-message" role="status" style="margin-left:12px"></span></div>
-<div class="tabs">
-  <button class="tab active" onclick="switchCenter('Milimani',this)">Milimani Centre</button>
-  <button class="tab" onclick="switchCenter('Coram Deo',this)">Coram Deo Centre</button>
-  <button class="tab" onclick="showDashboard(this)">📊 Dashboard</button>
-  <a class="tab" href="appraisal.html" style="text-decoration:none">Appraisal &amp; surveys</a>
-</div>
+  <div id="centre-view">
+    <div class="section-tabs">
+      <button class="stab active" onclick="switchSection('attendance', this)">
+        Attendance register
+      </button>
+      <button class="stab" onclick="switchSection('uptime', this)">
+        Lab uptime
+      </button>
+      <button class="stab" onclick="switchSection('reports', this)">
+        Weekly reports
+      </button>
+    </div>
 
-<div id="centre-view">
-<div class="section-tabs">
-  <button class="stab active" onclick="switchSection('attendance',this)">Attendance register</button>
-  <button class="stab" onclick="switchSection('uptime',this)">Lab uptime</button>
-  <button class="stab" onclick="switchSection('reports',this)">Weekly reports</button>
-</div>
-
-<div id="section-attendance">
-  <details class="card" style="padding:16px;margin-bottom:12px">
-    <summary style="cursor:pointer;font-weight:600">Add learners / Import Excel</summary>
-    <p>Selected register: <strong id="enrolment-target"></strong>. Existing records are preserved.</p>
-    <form id="learner-form" onsubmit="event.preventDefault();addLearner()" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
-      <label>Full name<br><input id="learner-name" required minlength="2" maxlength="120" autocomplete="off" placeholder="Learner’s full name"></label>
-      <button class="bulk-btn" type="submit">Add learner</button>
-    </form>
-    <hr style="margin:18px 0;border:0;border-top:1px solid var(--line)">
-    <p>Upload .xlsx, .xls or .csv with a <strong>Full Name</strong> column. A one-column list without a heading also works. Maximum 1,000 learners and 5 MB per file.</p>
-    <button class="bulk-btn" onclick="downloadLearnerTemplate()">Download Excel template</button>
-    <label style="display:inline-block;margin:8px">Choose file <input id="learner-file" type="file" accept=".xlsx,.xls,.csv" onchange="previewLearnerFile(this.files[0])"></label>
-    <div id="import-preview" style="max-height:260px;overflow:auto"></div>
-    <button id="import-confirm" class="bulk-btn" hidden onclick="confirmLearnerImport()">Import valid learners</button>
-    <p id="learner-message" role="status" aria-live="polite"></p>
-  </details>
-  <div class="card" style="padding:.75rem 1.25rem">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:8px">
-        <label style="font-size:13px;color:var(--ink-soft)">Week:</label>
-        <select id="week-select" onchange="onWeekChange()"></select>
+    <div id="section-attendance">
+      <details class="card" style="padding: 16px; margin-bottom: 12px">
+        <summary style="cursor: pointer; font-weight: 600">
+          Add learners / Import Excel
+        </summary>
+        <p>
+          Selected register: <strong id="enrolment-target"></strong>. Existing
+          records are preserved.
+        </p>
+        <form
+          id="learner-form"
+          onsubmit="
+            event.preventDefault();
+            addLearner();
+          "
+          style="display: flex; gap: 10px; flex-wrap: wrap; align-items: end"
+        >
+          <label
+            >Full name<br /><input
+              id="learner-name"
+              required
+              minlength="2"
+              maxlength="120"
+              autocomplete="off"
+              placeholder="Learner’s full name"
+          /></label>
+          <button class="bulk-btn" type="submit">Add learner</button>
+        </form>
+        <hr
+          style="margin: 18px 0; border: 0; border-top: 1px solid var(--line)"
+        />
+        <p>
+          Upload .xlsx, .xls or .csv with a <strong>Full Name</strong> column. A
+          one-column list without a heading also works. Maximum 1,000 learners
+          and 5 MB per file.
+        </p>
+        <button class="bulk-btn" onclick="downloadLearnerTemplate()">
+          Download Excel template
+        </button>
+        <label style="display: inline-block; margin: 8px"
+          >Choose file
+          <input
+            id="learner-file"
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            onchange="previewLearnerFile(this.files[0])"
+        /></label>
+        <div
+          id="import-preview"
+          style="max-height: 260px; overflow: auto"
+        ></div>
+        <button
+          id="import-confirm"
+          class="bulk-btn"
+          hidden
+          onclick="confirmLearnerImport()"
+        >
+          Import valid learners
+        </button>
+        <p id="learner-message" role="status" aria-live="polite"></p>
+      </details>
+      <div class="card" style="padding: 0.75rem 1.25rem">
+        <div
+          style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap"
+        >
+          <div style="display: flex; align-items: center; gap: 8px">
+            <label style="font-size: 13px; color: var(--ink-soft)">Week:</label>
+            <select id="week-select" onchange="onWeekChange()"></select>
+          </div>
+          <span
+            style="font-size: 13px; font-weight: 500; color: var(--ink)"
+            id="week-date-label"
+          ></span>
+          <div class="day-tabs" id="day-tabs"></div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search student…"
+            oninput="renderRegister()"
+            style="
+              font-size: 13px;
+              padding: 5px 10px;
+              border-radius: var(--radius-md);
+              border: 0.5px solid var(--line);
+              background: var(--surface-alt);
+              color: var(--ink);
+            "
+          />
+        </div>
       </div>
-      <span style="font-size:13px;font-weight:500;color:var(--ink)" id="week-date-label"></span>
-      <div class="day-tabs" id="day-tabs"></div>
-      <input type="text" id="search-input" placeholder="Search student…" oninput="renderRegister()" style="font-size:13px;padding:5px 10px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
-    </div>
-  </div>
-  <div class="bulk-bar">
-    <span>Mark all:</span>
-    <button class="bulk-btn all-p" onclick="markAll('P')">All present</button>
-    <button class="bulk-btn all-a" onclick="markAll('A')">All absent</button>
-    <button class="bulk-btn clear" onclick="markAll('none')">Clear all</button>
-    <div style="width:1px;height:20px;background:var(--line);margin:0 4px"></div>
-    <span>Excuse reason:</span>
-    <select id="bulk-excuse-reason" style="font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface-alt);color:var(--ink)">
-      <option value="School closed">School closed</option>
-      <option value="Games">Games</option>
-      <option value="Sick">Sick</option>
-    </select>
-    <button class="bulk-btn" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)" onclick="markAllExcused()">Excuse all</button>
-    <button class="bulk-btn" style="background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)" onclick="markSelectedExcused()">Excuse selected</button>
-    <div style="flex:1"></div>
-    <span style="font-size:11px;color:var(--ink-mute)">P = Present &nbsp; A = Absent &nbsp; E = Excused</span>
-  </div>
-  <div class="stats" id="att-stats"></div>
-  <div class="card" style="padding:0;overflow:hidden">
-    <table class="reg-table">
-      <thead><tr>
-        <th style="width:30px"><input type="checkbox" id="select-all-chk" onchange="toggleSelectAll(this)"></th>
-        <th style="width:34px">#</th>
-        <th>Student name</th>
-        <th style="text-align:center;width:108px">Attendance</th>
-        <th style="min-width:170px">Reason for absence / excuse</th>
-      </tr></thead>
-      <tbody id="reg-body"></tbody>
-    </table>
-  </div>
-</div>
-
-<div id="section-uptime" style="display:none">
-  <div class="stats uptime-summary" id="uptime-stats"></div>
-  <div id="uptime-list"></div>
-</div>
-
-<div id="section-reports" style="display:none">
-  <div class="card" style="margin-bottom:1rem">
-    <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:1rem">Add weekly report</div>
-    <div class="new-report-form">
-      <span class="form-label">Week ending date</span>
-      <input type="text" id="rpt-date" placeholder="e.g. 23 Mar 2026">
-      <span class="form-label">Challenges faced</span>
-      <textarea id="rpt-challenges" rows="3" placeholder="List challenges encountered (one per line)…"></textarea>
-      <span class="form-label">Recommendations</span>
-      <textarea id="rpt-recs" rows="2" placeholder="Recommended actions (one per line)…"></textarea>
-      <span class="form-label">Data insights / learning gaps</span>
-      <textarea id="rpt-insights" rows="3" maxlength="5000" placeholder="What do attendance, assessment and practical results show? Include figures and topics."></textarea>
-      <span class="form-label">Intervention and review plan</span>
-      <textarea id="rpt-intervention" rows="3" maxlength="5000" placeholder="Who needs support, what will change, and when will you review the outcome?"></textarea>
-      <button class="add-btn" onclick="addReport()">Add report</button>
-    </div>
-  </div>
-  <div id="reports-list"></div>
-</div>
-</div>
-
-<div id="section-dashboard" style="display:none">
-  <div class="stats" id="dash-overview"></div>
-
-  <div class="card">
-    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Attendance trend by week (%)</h3>
-    <canvas id="chart-attendance-trend" height="90"></canvas>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="dash-two-col">
-    <div class="card">
-      <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Attendance breakdown</h3>
-      <canvas id="chart-attendance-breakdown" height="180"></canvas>
-    </div>
-    <div class="card">
-      <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Lab uptime by week (%)</h3>
-      <canvas id="chart-uptime-trend" height="180"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Students needing attention (attendance under 75%, excused absences not counted)</h3>
-    <div id="dash-at-risk"></div>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <h3 style="font-size:13px;font-weight:700;color:var(--ink)">Project challenges</h3>
-      <div style="display:flex;gap:6px" id="dash-challenge-filter">
-        <button class="day-tab active" data-filter="all" onclick="setChallengeFilter('all',this)">All</button>
-        <button class="day-tab" data-filter="unresolved" onclick="setChallengeFilter('unresolved',this)">Unresolved</button>
-        <button class="day-tab" data-filter="resolved" onclick="setChallengeFilter('resolved',this)">Resolved</button>
+      <div class="bulk-bar">
+        <span>Mark all:</span>
+        <button class="bulk-btn all-p" onclick="markAll('P')">
+          All present
+        </button>
+        <button class="bulk-btn all-a" onclick="markAll('A')">
+          All absent
+        </button>
+        <button class="bulk-btn clear" onclick="markAll('none')">
+          Clear all
+        </button>
+        <div
+          style="
+            width: 1px;
+            height: 20px;
+            background: var(--line);
+            margin: 0 4px;
+          "
+        ></div>
+        <span>Excuse reason:</span>
+        <select
+          id="bulk-excuse-reason"
+          style="
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            color: var(--ink);
+          "
+        >
+          <option value="School closed">School closed</option>
+          <option value="Games">Games</option>
+          <option value="Sick">Sick</option>
+        </select>
+        <button
+          class="bulk-btn"
+          style="
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-line);
+          "
+          onclick="markAllExcused()"
+        >
+          Excuse all
+        </button>
+        <button
+          class="bulk-btn"
+          style="
+            background: var(--amber-bg);
+            color: var(--amber);
+            border-color: var(--amber-line);
+          "
+          onclick="markSelectedExcused()"
+        >
+          Excuse selected
+        </button>
+        <div style="flex: 1"></div>
+        <span style="font-size: 11px; color: var(--ink-mute)"
+          >P = Present &nbsp; A = Absent &nbsp; E = Excused</span
+        >
+      </div>
+      <div class="stats" id="att-stats"></div>
+      <div class="card" style="padding: 0; overflow: hidden">
+        <table class="reg-table">
+          <thead>
+            <tr>
+              <th style="width: 30px">
+                <input
+                  type="checkbox"
+                  id="select-all-chk"
+                  onchange="toggleSelectAll(this)"
+                />
+              </th>
+              <th style="width: 34px">#</th>
+              <th>Student name</th>
+              <th style="text-align: center; width: 108px">Attendance</th>
+              <th style="min-width: 170px">Reason for absence / excuse</th>
+            </tr>
+          </thead>
+          <tbody id="reg-body"></tbody>
+        </table>
       </div>
     </div>
-    <div class="stats" id="dash-challenge-stats" style="margin-bottom:14px"></div>
-    <div id="dash-challenges"></div>
+
+    <div id="section-uptime" style="display: none">
+      <div class="stats uptime-summary" id="uptime-stats"></div>
+      <div id="uptime-list"></div>
+    </div>
+
+    <div id="section-reports" style="display: none">
+      <div class="card" style="margin-bottom: 1rem">
+        <div
+          style="
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+            margin-bottom: 1rem;
+          "
+        >
+          Add weekly report
+        </div>
+        <div class="new-report-form">
+          <span class="form-label">Week ending date</span>
+          <input type="text" id="rpt-date" placeholder="e.g. 23 Mar 2026" />
+          <span class="form-label">Challenges faced</span>
+          <textarea
+            id="rpt-challenges"
+            rows="3"
+            placeholder="List challenges encountered (one per line)…"
+          ></textarea>
+          <span class="form-label">Recommendations</span>
+          <textarea
+            id="rpt-recs"
+            rows="2"
+            placeholder="Recommended actions (one per line)…"
+          ></textarea>
+          <span class="form-label">Data insights / learning gaps</span>
+          <textarea
+            id="rpt-insights"
+            rows="3"
+            maxlength="5000"
+            placeholder="What do attendance, assessment and practical results show? Include figures and topics."
+          ></textarea>
+          <span class="form-label">Intervention and review plan</span>
+          <textarea
+            id="rpt-intervention"
+            rows="3"
+            maxlength="5000"
+            placeholder="Who needs support, what will change, and when will you review the outcome?"
+          ></textarea>
+          <button class="add-btn" onclick="addReport()">Add report</button>
+        </div>
+      </div>
+      <div id="reports-list"></div>
+    </div>
   </div>
 
-  <div class="card">
-    <h3 style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Recent recommendations</h3>
-    <div id="dash-reports"></div>
+  <div id="section-dashboard" style="display: none">
+    <div class="stats" id="dash-overview"></div>
+
+    <div class="card">
+      <h3
+        style="
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink);
+          margin-bottom: 10px;
+        "
+      >
+        Attendance trend by week (%)
+      </h3>
+      <canvas id="chart-attendance-trend" height="90"></canvas>
+    </div>
+
+    <div
+      style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem"
+      id="dash-two-col"
+    >
+      <div class="card">
+        <h3
+          style="
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 10px;
+          "
+        >
+          Attendance breakdown
+        </h3>
+        <canvas id="chart-attendance-breakdown" height="180"></canvas>
+      </div>
+      <div class="card">
+        <h3
+          style="
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 10px;
+          "
+        >
+          Lab uptime by week (%)
+        </h3>
+        <canvas id="chart-uptime-trend" height="180"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3
+        style="
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink);
+          margin-bottom: 10px;
+        "
+      >
+        Students needing attention (attendance under 75%, excused absences not
+        counted)
+      </h3>
+      <div id="dash-at-risk"></div>
+    </div>
+
+    <div class="card">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          flex-wrap: wrap;
+          gap: 8px;
+        "
+      >
+        <h3 style="font-size: 13px; font-weight: 700; color: var(--ink)">
+          Project challenges
+        </h3>
+        <div style="display: flex; gap: 6px" id="dash-challenge-filter">
+          <button
+            class="day-tab active"
+            data-filter="all"
+            onclick="setChallengeFilter('all', this)"
+          >
+            All
+          </button>
+          <button
+            class="day-tab"
+            data-filter="unresolved"
+            onclick="setChallengeFilter('unresolved', this)"
+          >
+            Unresolved
+          </button>
+          <button
+            class="day-tab"
+            data-filter="resolved"
+            onclick="setChallengeFilter('resolved', this)"
+          >
+            Resolved
+          </button>
+        </div>
+      </div>
+      <div
+        class="stats"
+        id="dash-challenge-stats"
+        style="margin-bottom: 14px"
+      ></div>
+      <div id="dash-challenges"></div>
+    </div>
+
+    <div class="card">
+      <h3
+        style="
+          font-size: 13px;
+          font-weight: 700;
+          color: var(--ink);
+          margin-bottom: 10px;
+        "
+      >
+        Recent recommendations
+      </h3>
+      <div id="dash-reports"></div>
+    </div>
   </div>
+
+  <footer
+    style="
+      text-align: center;
+      padding: 1.5rem 0 0.5rem;
+      font-size: 11px;
+      color: var(--ink-mute);
+    "
+  >
+    Designed by
+    <a
+      href="https://www.techcraftlimited.tech"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="color: var(--navy); font-weight: 600; text-decoration: none"
+      >Techcraft Limited</a
+    >
+  </footer>
 </div>
 
-<footer style="text-align:center;padding:1.5rem 0 .5rem;font-size:11px;color:var(--ink-mute)">
-  Designed by <a href="https://www.techcraftlimited.tech" target="_blank" rel="noopener noreferrer" style="color:var(--navy);font-weight:600;text-decoration:none">Techcraft Limited</a>
-</footer>
-</div>
-
+<script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="vendor/xlsx.full.min.js"></script>
 <script src="learner-import.js"></script>
 <script>
-// ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
-const SUPABASE_URL='https://jbuvujfnatrefzlabyvx.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpidXZ1amZuYXRyZWZ6bGFieXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDY1NTcsImV4cCI6MjA5OTUyMjU1N30.fZfbZ0GAw22WnCHleO_DA0rqWMsWkN9Lzp9c-gs8a9c';
-let sb=null;
-try{
-  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-}catch(e){console.error('Supabase init failed',e);}
-// ===========================================================================
-
-const MILIMANI=[], CORAM_DEO=[];
-let academicYear=2026, databaseReady=false, importPreview=null;
-const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const CENTER_DAYS={'Milimani':[{name:'Tuesday',dow:2},{name:'Thursday',dow:4}],'Coram Deo':[{name:'Monday',dow:1},{name:'Wednesday',dow:3}]};
-const CENTER_SCHEDULE={'Milimani':'Tue & Thu','Coram Deo':'Mon & Wed'};
-
-// Preset reasons for an "Excused" mark. "Other" lets the trainer type a custom reason.
-const EXCUSE_REASONS=['School closed','Games','Sick'];
-function reasonCodeFor(text){
-  if(!text) return null;
-  return EXCUSE_REASONS.includes(text)?text:'Other';
-}
-
-const SEED_REPORTS=[
-  {id:'r1',date:'16 Mar 2026',
-   challenges:'Lack of IT technician toolkit — no complete toolkit available for PC assembly, maintenance and troubleshooting.\nLack of spare or outdated CPUs for practical training activities.\nNetwork connectivity issues: social workers unable to access network from their offices, forced to use the computer lab.',
-   recs:'Provision of a complete IT technician toolkit.\nProvide old or spare CPUs for practical lab sessions.\nInstall a router in social workers\' office, or bridge/extend WiFi to reach their offices.'},
-  {id:'r2',date:'23 Mar 2026',
-   challenges:'Coram Deo: heavy power surges during the week. Coram Deo: unavailability of a printing device. Milimani: signs of a porous ceiling in the lab. Milimani: Wi-Fi instability in the social work, LAA, Deputy and nurse offices — connectivity restored after troubleshooting but still slow and intermittent.',
-   recs:'Coram Deo: fix printer and reassign it to the centre.\nMilimani: procure a higher Mbps Wi-Fi router to improve connectivity across offices.'},
-  {id:'r3',date:'30 Mar 2026',
-   challenges:'Coram Deo: faulty chairs in the lab affecting learner comfort and seating capacity.\nCoram Deo: absence of a functional printer limiting administrative and learning support.\nMilimani: Wi-Fi connectivity challenges persist at the Social Workers\' Office, affecting access to online resources.',
-   recs:'Coram Deo: request urgent replacement or repair of faulty chairs.\nCoram Deo: source a printer for lab use.\nMilimani: investigate network infrastructure and boost Wi-Fi signal to reach Social Workers\' Office.'}
-];
-
-function getWeeksWithDays(center){
-  const days=CENTER_DAYS[center];const end=new Date(academicYear,11,31);const weeks=[];
-  const start=academicYear===2026?new Date(2026,1,23):new Date(academicYear,0,1);
-  let mon=new Date(start);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
-  while(mon<=end){
-    const sessions=[];
-    days.forEach(day=>{const sd=new Date(mon);sd.setDate(mon.getDate()+(day.dow-1));if(sd<=end&&sd>=start)sessions.push({name:day.name,date:new Date(sd)});});
-    if(sessions.length)weeks.push({monday:new Date(mon),sessions});
-    mon.setDate(mon.getDate()+7);
+  // ====== SUPABASE CONFIG — fill these in from Project Settings > API ======
+  const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.APP_CONFIG;
+  let sb = null;
+  try {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) {
+    console.error('Supabase init failed', e);
   }
-  return weeks;
-}
-const FMT=d=>d.toLocaleDateString('en-KE',{day:'2-digit',month:'short',year:'numeric'});
-const FMTS=d=>d.toLocaleDateString('en-KE',{day:'2-digit',month:'short'});
-function KA(c,w,d,n){return`att|${c}|${w}|${d}|${n}`}
-function KR(c,w,d,n){return`abs|${c}|${w}|${d}|${n}`}
-function KU(c,w,d,f){return`up|${c}|${w}|${d}|${f}`}
-function KN(c,w){return`note|${c}|${w}`}
+  // ===========================================================================
 
-let store={};let reports=[];let challengeItems=[];let challengeFilter='all';
-let currentCenter='Milimani',currentSection='attendance',currentWeek=0,currentDay=0,WEEKS=[];
-let centerView={};
-let selectedForBulk=new Set();
-let centreIdByName={},studentIdByName={},sessionIdCache={};
-// FIX: use the LOCAL calendar date (year/month/day as displayed), not
-// toISOString() which converts to UTC first. toISOString() rolls the date
-// back by one day for any timezone ahead of UTC (e.g. Kenya, UTC+3), which
-// was silently shifting every saved session onto the wrong date in the
-// database and could show marks as "blank" whenever the app was opened
-// from a device with a different timezone setting than before.
-const isoDate=d=>{
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-};
-let autoSaveTimer=null;
-function touchStore(){
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer=setTimeout(()=>{saveAll();autoSaveTimer=null;},4000);
-}
-window.addEventListener('beforeunload',function(e){
-  if(autoSaveTimer){e.preventDefault();e.returnValue='';}
-});
-function buildDateIndex(center){
-  const map={};
-  getWeeksWithDays(center).forEach((wk,wi)=>wk.sessions.forEach((sess,di)=>{map[isoDate(sess.date)]={wi,di};}));
-  return map;
-}
-function setDbStatus(text,ok){
-  console.log('[DB status]',text);
-  const el=document.getElementById('db-status');
-  el.textContent=text;el.style.display='inline';
-  el.style.background=ok?'rgba(159,225,203,.2)':'rgba(240,149,149,.25)';
-  el.style.color=ok?'#9FE1CB':'#F09595';
-}
-function findCurrentIndex(weeks){
-  const today=new Date();today.setHours(0,0,0,0);
-  for(let wi=0;wi<weeks.length;wi++){
-    for(let di=0;di<weeks[wi].sessions.length;di++){
-      const d=new Date(weeks[wi].sessions[di].date);d.setHours(0,0,0,0);
-      if(d.getTime()===today.getTime())return{wi,di};
-      if(d>today)return{wi,di};
-    }
+  const MILIMANI = [],
+    CORAM_DEO = [];
+  let academicYear = 2026,
+    databaseReady = false,
+    importPreview = null;
+  const escapeHtml = (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[c],
+    );
+  const CENTER_DAYS = {
+    Milimani: [
+      { name: 'Tuesday', dow: 2 },
+      { name: 'Thursday', dow: 4 },
+    ],
+    'Coram Deo': [
+      { name: 'Monday', dow: 1 },
+      { name: 'Wednesday', dow: 3 },
+    ],
+  };
+  const CENTER_SCHEDULE = { Milimani: 'Tue & Thu', 'Coram Deo': 'Mon & Wed' };
+
+  // Preset reasons for an "Excused" mark. "Other" lets the trainer type a custom reason.
+  const EXCUSE_REASONS = ['School closed', 'Games', 'Sick'];
+  function reasonCodeFor(text) {
+    if (!text) return null;
+    return EXCUSE_REASONS.includes(text) ? text : 'Other';
   }
-  if(weeks.length){
-    const lastWi=weeks.length-1;
-    return{wi:lastWi,di:weeks[lastWi].sessions.length-1};
-  }
-  return{wi:0,di:0};
-}
 
-function getStudents(){return currentCenter==='Milimani'?MILIMANI:CORAM_DEO;}
+  const SEED_REPORTS = [
+    {
+      id: 'r1',
+      date: '16 Mar 2026',
+      challenges:
+        'Lack of IT technician toolkit — no complete toolkit available for PC assembly, maintenance and troubleshooting.\nLack of spare or outdated CPUs for practical training activities.\nNetwork connectivity issues: social workers unable to access network from their offices, forced to use the computer lab.',
+      recs: "Provision of a complete IT technician toolkit.\nProvide old or spare CPUs for practical lab sessions.\nInstall a router in social workers' office, or bridge/extend WiFi to reach their offices.",
+    },
+    {
+      id: 'r2',
+      date: '23 Mar 2026',
+      challenges:
+        'Coram Deo: heavy power surges during the week. Coram Deo: unavailability of a printing device. Milimani: signs of a porous ceiling in the lab. Milimani: Wi-Fi instability in the social work, LAA, Deputy and nurse offices — connectivity restored after troubleshooting but still slow and intermittent.',
+      recs: 'Coram Deo: fix printer and reassign it to the centre.\nMilimani: procure a higher Mbps Wi-Fi router to improve connectivity across offices.',
+    },
+    {
+      id: 'r3',
+      date: '30 Mar 2026',
+      challenges:
+        "Coram Deo: faulty chairs in the lab affecting learner comfort and seating capacity.\nCoram Deo: absence of a functional printer limiting administrative and learning support.\nMilimani: Wi-Fi connectivity challenges persist at the Social Workers' Office, affecting access to online resources.",
+      recs: "Coram Deo: request urgent replacement or repair of faulty chairs.\nCoram Deo: source a printer for lab use.\nMilimani: investigate network infrastructure and boost Wi-Fi signal to reach Social Workers' Office.",
+    },
+  ];
 
-function switchCenter(c,btn){
-  currentCenter=c;
-  resetImportPreview();
-  selectedForBulk=new Set();
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  document.getElementById('section-dashboard').style.display='none';
-  document.getElementById('centre-view').style.display='';
-  WEEKS=getWeeksWithDays(c);
-  if(centerView[c]){
-    currentWeek=Math.min(centerView[c].week,WEEKS.length-1);
-    currentDay=Math.min(centerView[c].day,(WEEKS[currentWeek]?WEEKS[currentWeek].sessions.length:1)-1);
-  }else{
-    const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
-  }
-  document.getElementById('centre-schedule').textContent=CENTER_SCHEDULE[c];
-  renderAll();if(currentSection==='uptime')renderUptime();if(currentSection==='reports')renderReports();
-}
-function switchSection(s,btn){
-  currentSection=s;
-  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  ['attendance','uptime','reports'].forEach(x=>document.getElementById('section-'+x).style.display=x===s?'':'none');
-  if(s==='uptime')renderUptime();if(s==='reports')renderReports();
-}
-
-// ============================================================
-// DASHBOARD — analytics across both centres
-// ============================================================
-let dashCharts={};
-function showDashboard(btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
-  document.getElementById('centre-view').style.display='none';
-  document.getElementById('section-dashboard').style.display='';
-  renderDashboard();
-}
-function computeAttendanceStats(centre){
-  const weeks=getWeeksWithDays(centre);
-  const students=centre==='Milimani'?MILIMANI:CORAM_DEO;
-  let P=0,A=0,E=0;
-  const perStudent=Object.create(null);students.forEach(s=>perStudent[s]={P:0,A:0,E:0,marked:0});
-  const weeklyPct=[];
-  weeks.forEach((wk,wi)=>{
-    let wP=0,wMarked=0;
-    wk.sessions.forEach((sess,di)=>{
-      students.forEach(s=>{
-        const v=store[KA(centre,wi,di,s)];
-        if(v==='P'||v==='A'||v==='E'){
-          wMarked++;perStudent[s].marked++;
-          if(v==='P'){P++;wP++;perStudent[s].P++;}
-          else if(v==='A'){A++;perStudent[s].A++;}
-          else if(v==='E'){E++;perStudent[s].E++;}
-        }
+  function getWeeksWithDays(center) {
+    const days = CENTER_DAYS[center];
+    const end = new Date(academicYear, 11, 31);
+    const weeks = [];
+    const start =
+      academicYear === 2026
+        ? new Date(2026, 1, 23)
+        : new Date(academicYear, 0, 1);
+    let mon = new Date(start);
+    mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+    while (mon <= end) {
+      const sessions = [];
+      days.forEach((day) => {
+        const sd = new Date(mon);
+        sd.setDate(mon.getDate() + (day.dow - 1));
+        if (sd <= end && sd >= start)
+          sessions.push({ name: day.name, date: new Date(sd) });
       });
+      if (sessions.length) weeks.push({ monday: new Date(mon), sessions });
+      mon.setDate(mon.getDate() + 7);
+    }
+    return weeks;
+  }
+  const FMT = (d) =>
+    d.toLocaleDateString('en-KE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     });
-    if(wMarked>0)weeklyPct.push({label:'W'+(wi+1),pct:Math.round((wP/wMarked)*100)});
+  const FMTS = (d) =>
+    d.toLocaleDateString('en-KE', { day: '2-digit', month: 'short' });
+  function KA(c, w, d, n) {
+    return `att|${c}|${w}|${d}|${n}`;
+  }
+  function KR(c, w, d, n) {
+    return `abs|${c}|${w}|${d}|${n}`;
+  }
+  function KU(c, w, d, f) {
+    return `up|${c}|${w}|${d}|${f}`;
+  }
+  function KN(c, w) {
+    return `note|${c}|${w}`;
+  }
+
+  let store = {};
+  let reports = [];
+  let challengeItems = [];
+  let challengeFilter = 'all';
+  let currentCenter = 'Milimani',
+    currentSection = 'attendance',
+    currentWeek = 0,
+    currentDay = 0,
+    WEEKS = [];
+  let centerView = {};
+  let selectedForBulk = new Set();
+  let centreIdByName = {},
+    studentIdByName = {},
+    sessionIdCache = {};
+  // FIX: use the LOCAL calendar date (year/month/day as displayed), not
+  // toISOString() which converts to UTC first. toISOString() rolls the date
+  // back by one day for any timezone ahead of UTC (e.g. Kenya, UTC+3), which
+  // was silently shifting every saved session onto the wrong date in the
+  // database and could show marks as "blank" whenever the app was opened
+  // from a device with a different timezone setting than before.
+  const isoDate = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  let autoSaveTimer = null;
+  function touchStore() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+      saveAll();
+      autoSaveTimer = null;
+    }, 4000);
+  }
+  window.addEventListener('beforeunload', function (e) {
+    if (autoSaveTimer) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
   });
-  return{P,A,E,perStudent,weeklyPct,students};
-}
-function computeUptimeStats(centre){
-  const weeks=getWeeksWithDays(centre);
-  let planned=0,actual=0;const weeklyPct=[];
-  weeks.forEach((wk,wi)=>{
-    let wPlan=0,wAct=0;
-    wk.sessions.forEach((sess,di)=>{
-      wPlan+=parseFloat(store[KU(centre,wi,di,'planned')])||0;
-      wAct+=parseFloat(store[KU(centre,wi,di,'actual')])||0;
+  function buildDateIndex(center) {
+    const map = {};
+    getWeeksWithDays(center).forEach((wk, wi) =>
+      wk.sessions.forEach((sess, di) => {
+        map[isoDate(sess.date)] = { wi, di };
+      }),
+    );
+    return map;
+  }
+  function setDbStatus(text, ok) {
+    console.log('[DB status]', text);
+    const el = document.getElementById('db-status');
+    el.textContent = text;
+    el.style.display = 'inline';
+    el.style.background = ok ? 'rgba(159,225,203,.2)' : 'rgba(240,149,149,.25)';
+    el.style.color = ok ? '#9FE1CB' : '#F09595';
+  }
+  function findCurrentIndex(weeks) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let wi = 0; wi < weeks.length; wi++) {
+      for (let di = 0; di < weeks[wi].sessions.length; di++) {
+        const d = new Date(weeks[wi].sessions[di].date);
+        d.setHours(0, 0, 0, 0);
+        if (d.getTime() === today.getTime()) return { wi, di };
+        if (d > today) return { wi, di };
+      }
+    }
+    if (weeks.length) {
+      const lastWi = weeks.length - 1;
+      return { wi: lastWi, di: weeks[lastWi].sessions.length - 1 };
+    }
+    return { wi: 0, di: 0 };
+  }
+
+  function getStudents() {
+    return currentCenter === 'Milimani' ? MILIMANI : CORAM_DEO;
+  }
+
+  function switchCenter(c, btn) {
+    currentCenter = c;
+    resetImportPreview();
+    selectedForBulk = new Set();
+    document
+      .querySelectorAll('.tab')
+      .forEach((t) => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('section-dashboard').style.display = 'none';
+    document.getElementById('centre-view').style.display = '';
+    WEEKS = getWeeksWithDays(c);
+    if (centerView[c]) {
+      currentWeek = Math.min(centerView[c].week, WEEKS.length - 1);
+      currentDay = Math.min(
+        centerView[c].day,
+        (WEEKS[currentWeek] ? WEEKS[currentWeek].sessions.length : 1) - 1,
+      );
+    } else {
+      const idx = findCurrentIndex(WEEKS);
+      currentWeek = idx.wi;
+      currentDay = idx.di;
+    }
+    document.getElementById('centre-schedule').textContent = CENTER_SCHEDULE[c];
+    renderAll();
+    if (currentSection === 'uptime') renderUptime();
+    if (currentSection === 'reports') renderReports();
+  }
+  function switchSection(s, btn) {
+    currentSection = s;
+    document
+      .querySelectorAll('.stab')
+      .forEach((t) => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['attendance', 'uptime', 'reports'].forEach(
+      (x) =>
+        (document.getElementById('section-' + x).style.display =
+          x === s ? '' : 'none'),
+    );
+    if (s === 'uptime') renderUptime();
+    if (s === 'reports') renderReports();
+  }
+
+  // ============================================================
+  // DASHBOARD — analytics across both centres
+  // ============================================================
+  let dashCharts = {};
+  function showDashboard(btn) {
+    document
+      .querySelectorAll('.tab')
+      .forEach((t) => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('centre-view').style.display = 'none';
+    document.getElementById('section-dashboard').style.display = '';
+    renderDashboard();
+  }
+  function computeAttendanceStats(centre) {
+    const weeks = getWeeksWithDays(centre);
+    const students = centre === 'Milimani' ? MILIMANI : CORAM_DEO;
+    let P = 0,
+      A = 0,
+      E = 0;
+    const perStudent = Object.create(null);
+    students.forEach((s) => (perStudent[s] = { P: 0, A: 0, E: 0, marked: 0 }));
+    const weeklyPct = [];
+    weeks.forEach((wk, wi) => {
+      let wP = 0,
+        wMarked = 0;
+      wk.sessions.forEach((sess, di) => {
+        students.forEach((s) => {
+          const v = store[KA(centre, wi, di, s)];
+          if (v === 'P' || v === 'A' || v === 'E') {
+            wMarked++;
+            perStudent[s].marked++;
+            if (v === 'P') {
+              P++;
+              wP++;
+              perStudent[s].P++;
+            } else if (v === 'A') {
+              A++;
+              perStudent[s].A++;
+            } else if (v === 'E') {
+              E++;
+              perStudent[s].E++;
+            }
+          }
+        });
+      });
+      if (wMarked > 0)
+        weeklyPct.push({
+          label: 'W' + (wi + 1),
+          pct: Math.round((wP / wMarked) * 100),
+        });
     });
-    planned+=wPlan;actual+=wAct;
-    if(wPlan>0)weeklyPct.push({label:'W'+(wi+1),pct:Math.min(100,Math.round((wAct/wPlan)*100))});
-  });
-  return{planned,actual,weeklyPct};
-}
-function destroyDashCharts(){
-  Object.values(dashCharts).forEach(c=>{if(c)c.destroy();});
-  dashCharts={};
-}
-function setChallengeFilter(filter,btn){
-  challengeFilter=filter;
-  document.querySelectorAll('#dash-challenge-filter .day-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderDashboardChallenges();
-}
-function renderDashboardChallenges(){
-  const total=challengeItems.length;
-  const resolved=challengeItems.filter(c=>c.resolved).length;
-  const unresolved=total-resolved;
-  document.getElementById('dash-challenge-stats').innerHTML=`
+    return { P, A, E, perStudent, weeklyPct, students };
+  }
+  function computeUptimeStats(centre) {
+    const weeks = getWeeksWithDays(centre);
+    let planned = 0,
+      actual = 0;
+    const weeklyPct = [];
+    weeks.forEach((wk, wi) => {
+      let wPlan = 0,
+        wAct = 0;
+      wk.sessions.forEach((sess, di) => {
+        wPlan += parseFloat(store[KU(centre, wi, di, 'planned')]) || 0;
+        wAct += parseFloat(store[KU(centre, wi, di, 'actual')]) || 0;
+      });
+      planned += wPlan;
+      actual += wAct;
+      if (wPlan > 0)
+        weeklyPct.push({
+          label: 'W' + (wi + 1),
+          pct: Math.min(100, Math.round((wAct / wPlan) * 100)),
+        });
+    });
+    return { planned, actual, weeklyPct };
+  }
+  function destroyDashCharts() {
+    Object.values(dashCharts).forEach((c) => {
+      if (c) c.destroy();
+    });
+    dashCharts = {};
+  }
+  function setChallengeFilter(filter, btn) {
+    challengeFilter = filter;
+    document
+      .querySelectorAll('#dash-challenge-filter .day-tab')
+      .forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDashboardChallenges();
+  }
+  function renderDashboardChallenges() {
+    const total = challengeItems.length;
+    const resolved = challengeItems.filter((c) => c.resolved).length;
+    const unresolved = total - resolved;
+    document.getElementById('dash-challenge-stats').innerHTML = `
     <div class="stat"><div class="stat-label">Total challenges</div><div class="stat-val">${total}</div></div>
     <div class="stat"><div class="stat-label">Resolved</div><div class="stat-val green">${resolved}</div></div>
     <div class="stat"><div class="stat-label">Unresolved</div><div class="stat-val red">${unresolved}</div></div>
   `;
-  let list=challengeItems;
-  if(challengeFilter==='resolved')list=challengeItems.filter(c=>c.resolved);
-  else if(challengeFilter==='unresolved')list=challengeItems.filter(c=>!c.resolved);
-  const reportById={};reports.forEach(r=>reportById[r.id]=r);
-  const sorted=[...list].sort((a,b)=>String(b.id).localeCompare(String(a.id)));
-  document.getElementById('dash-challenges').innerHTML=sorted.length?sorted.map(c=>{
-    const rpt=reportById[c.report_id];
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);cursor:pointer" onclick='toggleChallenge(${JSON.stringify(c.id)},${c.resolved})'>
-      <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved?'var(--green)':'var(--red)'};background:${c.resolved?'var(--green)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">${c.resolved?'<span style="color:#fff;font-size:11px;font-weight:700">✓</span>':''}</div>
-      <span style="flex:1;font-size:12.5px;${c.resolved?'text-decoration:line-through;color:var(--ink-mute)':'color:var(--ink)'}">${escapeHtml(c.description)}</span>
-      ${rpt?`<span style="font-size:10.5px;color:var(--ink-mute);white-space:nowrap">Wk of ${rpt.date}</span>`:''}
+    let list = challengeItems;
+    if (challengeFilter === 'resolved')
+      list = challengeItems.filter((c) => c.resolved);
+    else if (challengeFilter === 'unresolved')
+      list = challengeItems.filter((c) => !c.resolved);
+    const reportById = {};
+    reports.forEach((r) => (reportById[r.id] = r));
+    const sorted = [...list].sort((a, b) =>
+      String(b.id).localeCompare(String(a.id)),
+    );
+    document.getElementById('dash-challenges').innerHTML = sorted.length
+      ? sorted
+          .map((c) => {
+            const rpt = reportById[c.report_id];
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);cursor:pointer" onclick='toggleChallenge(${JSON.stringify(c.id)},${c.resolved})'>
+      <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved ? 'var(--green)' : 'var(--red)'};background:${c.resolved ? 'var(--green)' : 'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">${c.resolved ? '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>' : ''}</div>
+      <span style="flex:1;font-size:12.5px;${c.resolved ? 'text-decoration:line-through;color:var(--ink-mute)' : 'color:var(--ink)'}">${escapeHtml(c.description)}</span>
+      ${rpt ? `<span style="font-size:10.5px;color:var(--ink-mute);white-space:nowrap">Wk of ${rpt.date}</span>` : ''}
     </div>`;
-  }).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No challenges match this filter.</p>';
-}
-function renderDashboard(){
-  const milAtt=computeAttendanceStats('Milimani'),corAtt=computeAttendanceStats('Coram Deo');
-  const milUp=computeUptimeStats('Milimani'),corUp=computeUptimeStats('Coram Deo');
-  const totalStudents=MILIMANI.length+CORAM_DEO.length;
-  const totalP=milAtt.P+corAtt.P,totalA=milAtt.A+corAtt.A,totalE=milAtt.E+corAtt.E;
-  const totalMarked=totalP+totalA+totalE;
-  const overallAttPct=totalMarked?Math.round((totalP/totalMarked)*100):0;
-  const totalPlanned=milUp.planned+corUp.planned,totalActual=milUp.actual+corUp.actual;
-  const overallUptimePct=totalPlanned?Math.min(100,Math.round((totalActual/totalPlanned)*100)):0;
+          })
+          .join('')
+      : '<p style="font-size:12.5px;color:var(--ink-mute)">No challenges match this filter.</p>';
+  }
+  function renderDashboard() {
+    const milAtt = computeAttendanceStats('Milimani'),
+      corAtt = computeAttendanceStats('Coram Deo');
+    const milUp = computeUptimeStats('Milimani'),
+      corUp = computeUptimeStats('Coram Deo');
+    const totalStudents = MILIMANI.length + CORAM_DEO.length;
+    const totalP = milAtt.P + corAtt.P,
+      totalA = milAtt.A + corAtt.A,
+      totalE = milAtt.E + corAtt.E;
+    const totalMarked = totalP + totalA + totalE;
+    const overallAttPct = totalMarked
+      ? Math.round((totalP / totalMarked) * 100)
+      : 0;
+    const totalPlanned = milUp.planned + corUp.planned,
+      totalActual = milUp.actual + corUp.actual;
+    const overallUptimePct = totalPlanned
+      ? Math.min(100, Math.round((totalActual / totalPlanned) * 100))
+      : 0;
 
-  document.getElementById('dash-overview').innerHTML=`
+    document.getElementById('dash-overview').innerHTML = `
     <div class="stat"><div class="stat-label">Total students</div><div class="stat-val">${totalStudents}</div></div>
     <div class="stat"><div class="stat-label">Overall attendance</div><div class="stat-val green">${overallAttPct}%</div></div>
-    <div class="stat"><div class="stat-label">Overall lab uptime</div><div class="stat-val" style="color:${overallUptimePct>=80?'var(--green)':overallUptimePct>=50?'var(--amber)':'var(--red)'}">${overallUptimePct}%</div></div>
+    <div class="stat"><div class="stat-label">Overall lab uptime</div><div class="stat-val" style="color:${overallUptimePct >= 80 ? 'var(--green)' : overallUptimePct >= 50 ? 'var(--amber)' : 'var(--red)'}">${overallUptimePct}%</div></div>
     <div class="stat"><div class="stat-label">Total absences</div><div class="stat-val red">${totalA}</div></div>
     <div class="stat"><div class="stat-label">Total excused</div><div class="stat-val" style="color:var(--amber)">${totalE}</div></div>
     <div class="stat"><div class="stat-label">Weekly reports filed</div><div class="stat-val">${reports.length}</div></div>
   `;
 
-  destroyDashCharts();
+    destroyDashCharts();
 
-  const maxWeeks=Math.max(milAtt.weeklyPct.length,corAtt.weeklyPct.length);
-  const labels=Array.from({length:maxWeeks},(_,i)=>'W'+(i+1));
-  dashCharts.trend=new Chart(document.getElementById('chart-attendance-trend'),{
-    type:'line',
-    data:{labels,datasets:[
-      {label:'Milimani',data:milAtt.weeklyPct.map(w=>w.pct),borderColor:'#0C447C',backgroundColor:'rgba(12,68,124,.08)',tension:.3,fill:true},
-      {label:'Coram Deo',data:corAtt.weeklyPct.map(w=>w.pct),borderColor:'#1E7A46',backgroundColor:'rgba(30,122,70,.08)',tension:.3,fill:true}
-    ]},
-    options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
-  });
+    const maxWeeks = Math.max(milAtt.weeklyPct.length, corAtt.weeklyPct.length);
+    const labels = Array.from({ length: maxWeeks }, (_, i) => 'W' + (i + 1));
+    dashCharts.trend = new Chart(
+      document.getElementById('chart-attendance-trend'),
+      {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Milimani',
+              data: milAtt.weeklyPct.map((w) => w.pct),
+              borderColor: '#0C447C',
+              backgroundColor: 'rgba(12,68,124,.08)',
+              tension: 0.3,
+              fill: true,
+            },
+            {
+              label: 'Coram Deo',
+              data: corAtt.weeklyPct.map((w) => w.pct),
+              borderColor: '#1E7A46',
+              backgroundColor: 'rgba(30,122,70,.08)',
+              tension: 0.3,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: (v) => v + '%' },
+            },
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, font: { size: 11 } },
+            },
+          },
+        },
+      },
+    );
 
-  dashCharts.breakdown=new Chart(document.getElementById('chart-attendance-breakdown'),{
-    type:'doughnut',
-    data:{labels:['Present','Absent','Excused'],datasets:[{data:[totalP,totalA,totalE],backgroundColor:['#1E7A46','#C0392B','#A9660B']}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
-  });
+    dashCharts.breakdown = new Chart(
+      document.getElementById('chart-attendance-breakdown'),
+      {
+        type: 'doughnut',
+        data: {
+          labels: ['Present', 'Absent', 'Excused'],
+          datasets: [
+            {
+              data: [totalP, totalA, totalE],
+              backgroundColor: ['#1E7A46', '#C0392B', '#A9660B'],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, font: { size: 11 } },
+            },
+          },
+        },
+      },
+    );
 
-  const maxUpWeeks=Math.max(milUp.weeklyPct.length,corUp.weeklyPct.length);
-  const upLabels=Array.from({length:maxUpWeeks},(_,i)=>'W'+(i+1));
-  dashCharts.uptime=new Chart(document.getElementById('chart-uptime-trend'),{
-    type:'bar',
-    data:{labels:upLabels,datasets:[
-      {label:'Milimani',data:milUp.weeklyPct.map(w=>w.pct),backgroundColor:'#378ADD'},
-      {label:'Coram Deo',data:corUp.weeklyPct.map(w=>w.pct),backgroundColor:'#3CB27A'}
-    ]},
-    options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}
-  });
+    const maxUpWeeks = Math.max(milUp.weeklyPct.length, corUp.weeklyPct.length);
+    const upLabels = Array.from(
+      { length: maxUpWeeks },
+      (_, i) => 'W' + (i + 1),
+    );
+    dashCharts.uptime = new Chart(
+      document.getElementById('chart-uptime-trend'),
+      {
+        type: 'bar',
+        data: {
+          labels: upLabels,
+          datasets: [
+            {
+              label: 'Milimani',
+              data: milUp.weeklyPct.map((w) => w.pct),
+              backgroundColor: '#378ADD',
+            },
+            {
+              label: 'Coram Deo',
+              data: corUp.weeklyPct.map((w) => w.pct),
+              backgroundColor: '#3CB27A',
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: (v) => v + '%' },
+            },
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, font: { size: 11 } },
+            },
+          },
+        },
+      },
+    );
 
-  // "Needing attention" — excused absences are removed from the calculation entirely,
-  // so a student who is excused (school closed / games / sick) never drags their % down
-  // and a student who is excused for every session this term is not flagged at all.
-  const atRisk=[];
-  [['Milimani',milAtt],['Coram Deo',corAtt]].forEach(([centreName,stats])=>{
-    Object.entries(stats.perStudent).forEach(([name,d])=>{
-      const denom=d.P+d.A; // excused (E) sessions are excluded from both numerator and denominator
-      if(denom>0){
-        const pct=Math.round((d.P/denom)*100);
-        if(pct<75)atRisk.push({name,centre:centreName,pct,denom,A:d.A,E:d.E});
-      }
+    // "Needing attention" — excused absences are removed from the calculation entirely,
+    // so a student who is excused (school closed / games / sick) never drags their % down
+    // and a student who is excused for every session this term is not flagged at all.
+    const atRisk = [];
+    [
+      ['Milimani', milAtt],
+      ['Coram Deo', corAtt],
+    ].forEach(([centreName, stats]) => {
+      Object.entries(stats.perStudent).forEach(([name, d]) => {
+        const denom = d.P + d.A; // excused (E) sessions are excluded from both numerator and denominator
+        if (denom > 0) {
+          const pct = Math.round((d.P / denom) * 100);
+          if (pct < 75)
+            atRisk.push({
+              name,
+              centre: centreName,
+              pct,
+              denom,
+              A: d.A,
+              E: d.E,
+            });
+        }
+      });
     });
-  });
-  atRisk.sort((a,b)=>a.pct-b.pct);
-  const riskHtml=atRisk.length?atRisk.slice(0,15).map(r=>`
+    atRisk.sort((a, b) => a.pct - b.pct);
+    const riskHtml = atRisk.length
+      ? atRisk
+          .slice(0, 15)
+          .map(
+            (r) => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft)">
       <div>
         <span style="font-size:13px;font-weight:500;color:var(--ink)">${escapeHtml(r.name)}</span>
-        <span class="centre-badge ${r.centre==='Milimani'?'mil':'cor'}" style="margin-left:8px">${r.centre}</span>
+        <span class="centre-badge ${r.centre === 'Milimani' ? 'mil' : 'cor'}" style="margin-left:8px">${r.centre}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:11px;color:var(--ink-mute)">${r.A} absent · ${r.E} excused (not counted)</span>
-        <span style="font-size:14px;font-weight:700;color:${r.pct<50?'var(--red)':'var(--amber)'}">${r.pct}%</span>
+        <span style="font-size:14px;font-weight:700;color:${r.pct < 50 ? 'var(--red)' : 'var(--amber)'}">${r.pct}%</span>
       </div>
-    </div>`).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No students currently below 75% attendance — nice work.</p>';
-  document.getElementById('dash-at-risk').innerHTML=riskHtml;
+    </div>`,
+          )
+          .join('')
+      : '<p style="font-size:12.5px;color:var(--ink-mute)">No students currently below 75% attendance — nice work.</p>';
+    document.getElementById('dash-at-risk').innerHTML = riskHtml;
 
-  renderDashboardChallenges();
+    renderDashboardChallenges();
 
-  const recent=reports.slice(0,4);
-  const reportsHtml=recent.length?recent.map(r=>{
-    const recs=(r.recs||'').split('\n').filter(x=>x.trim());
-    return `
+    const recent = reports.slice(0, 4);
+    const reportsHtml = recent.length
+      ? recent
+          .map((r) => {
+            const recs = (r.recs || '').split('\n').filter((x) => x.trim());
+            return `
     <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)">
       <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px">Week ending ${escapeHtml(r.date)}</div>
-      ${recs.length?recs.map(c=>`<div class="rec-item"><div class="rec-dot"></div><span>${escapeHtml(c)}</span></div>`).join(''):'<p style="font-size:12px;color:var(--ink-mute)">No recommendations logged.</p>'}
+      ${recs.length ? recs.map((c) => `<div class="rec-item"><div class="rec-dot"></div><span>${escapeHtml(c)}</span></div>`).join('') : '<p style="font-size:12px;color:var(--ink-mute)">No recommendations logged.</p>'}
     </div>`;
-  }).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No weekly reports logged yet.</p>';
-  document.getElementById('dash-reports').innerHTML=reportsHtml;
-}
+          })
+          .join('')
+      : '<p style="font-size:12.5px;color:var(--ink-mute)">No weekly reports logged yet.</p>';
+    document.getElementById('dash-reports').innerHTML = reportsHtml;
+  }
 
-function initWeekSelect(){
-  const sel=document.getElementById('week-select');sel.innerHTML='';
-  WEEKS.forEach((w,i)=>{const o=document.createElement('option');o.value=i;o.text=`Week ${i+1} — ${FMTS(w.sessions[0].date)}`;if(i===currentWeek)o.selected=true;sel.appendChild(o);});
-  updatePill();
-}
-function updatePill(){
-  const w=WEEKS[currentWeek];if(!w)return;
-  const s=w.sessions;
-  document.getElementById('week-date-label').textContent=`${FMTS(s[0].date)} – ${FMTS(s[s.length-1].date)}`;
-  document.getElementById('current-week-label').textContent=`Week ${currentWeek+1} of ${WEEKS.length}`;
-}
-function buildDayTabs(){
-  const c=document.getElementById('day-tabs');c.innerHTML='';
-  const w=WEEKS[currentWeek];if(!w)return;
-  w.sessions.forEach((sess,i)=>{
-    const btn=document.createElement('button');btn.className='day-tab'+(i===currentDay?' active':'');
-    btn.textContent=`${sess.name} ${FMTS(sess.date)}`;
-    btn.onclick=()=>{currentDay=i;selectedForBulk=new Set();centerView[currentCenter]={week:currentWeek,day:currentDay};buildDayTabs();renderRegister();};c.appendChild(btn);
-  });
-}
-function onWeekChange(){currentWeek=parseInt(document.getElementById('week-select').value);currentDay=0;selectedForBulk=new Set();centerView[currentCenter]={week:currentWeek,day:currentDay};updatePill();buildDayTabs();renderRegister();}
+  function initWeekSelect() {
+    const sel = document.getElementById('week-select');
+    sel.innerHTML = '';
+    WEEKS.forEach((w, i) => {
+      const o = document.createElement('option');
+      o.value = i;
+      o.text = `Week ${i + 1} — ${FMTS(w.sessions[0].date)}`;
+      if (i === currentWeek) o.selected = true;
+      sel.appendChild(o);
+    });
+    updatePill();
+  }
+  function updatePill() {
+    const w = WEEKS[currentWeek];
+    if (!w) return;
+    const s = w.sessions;
+    document.getElementById('week-date-label').textContent =
+      `${FMTS(s[0].date)} – ${FMTS(s[s.length - 1].date)}`;
+    document.getElementById('current-week-label').textContent =
+      `Week ${currentWeek + 1} of ${WEEKS.length}`;
+  }
+  function buildDayTabs() {
+    const c = document.getElementById('day-tabs');
+    c.innerHTML = '';
+    const w = WEEKS[currentWeek];
+    if (!w) return;
+    w.sessions.forEach((sess, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'day-tab' + (i === currentDay ? ' active' : '');
+      btn.textContent = `${sess.name} ${FMTS(sess.date)}`;
+      btn.onclick = () => {
+        currentDay = i;
+        selectedForBulk = new Set();
+        centerView[currentCenter] = { week: currentWeek, day: currentDay };
+        buildDayTabs();
+        renderRegister();
+      };
+      c.appendChild(btn);
+    });
+  }
+  function onWeekChange() {
+    currentWeek = parseInt(document.getElementById('week-select').value);
+    currentDay = 0;
+    selectedForBulk = new Set();
+    centerView[currentCenter] = { week: currentWeek, day: currentDay };
+    updatePill();
+    buildDayTabs();
+    renderRegister();
+  }
 
-function markAll(val){
-  getStudents().forEach(s=>{store[KA(currentCenter,currentWeek,currentDay,s)]=val;});
-  touchStore();renderRegister();
-}
+  function markAll(val) {
+    getStudents().forEach((s) => {
+      store[KA(currentCenter, currentWeek, currentDay, s)] = val;
+    });
+    touchStore();
+    renderRegister();
+  }
 
-// Excuse EVERY student for the current session with the reason chosen in the bulk bar.
-function markAllExcused(){
-  const reason=document.getElementById('bulk-excuse-reason').value;
-  getStudents().forEach(s=>{
-    store[KA(currentCenter,currentWeek,currentDay,s)]='E';
-    store[KR(currentCenter,currentWeek,currentDay,s)]=reason;
-  });
-  touchStore();renderRegister();
-}
-// Excuse only the checked ("selected") students with the reason chosen in the bulk bar —
-// use this when just a handful of students are excused rather than the whole class.
-function markSelectedExcused(){
-  if(!selectedForBulk.size){alert('Tick the checkbox next to at least one student first.');return;}
-  const reason=document.getElementById('bulk-excuse-reason').value;
-  selectedForBulk.forEach(s=>{
-    store[KA(currentCenter,currentWeek,currentDay,s)]='E';
-    store[KR(currentCenter,currentWeek,currentDay,s)]=reason;
-  });
-  touchStore();renderRegister();
-}
-function toggleSelectAll(chk){
-  const query=(document.getElementById('search-input').value||'').toLowerCase();
-  const names=getStudents().filter(s=>s.toLowerCase().includes(query));
-  if(chk.checked)names.forEach(n=>selectedForBulk.add(n));else names.forEach(n=>selectedForBulk.delete(n));
-  renderRegister();
-}
-
-// Builds the reason cell: a preset dropdown (+ free-text "Other") for Excused,
-// a plain free-text box for Absent, and a disabled placeholder otherwise.
-function renderReasonCell(v,kr,abv){
-  if(v==='E'){
-    const selVal=EXCUSE_REASONS.includes(abv)?abv:(abv?'Other':'');
-    let html=`<select class="absence-input" data-kr="${escapeHtml(kr)}" onchange="onExcuseReasonChange(this)">`;
-    html+=`<option value="" ${selVal===''?'selected':''}>Select reason…</option>`;
-    EXCUSE_REASONS.forEach(r=>{html+=`<option value="${r}" ${selVal===r?'selected':''}>${r}</option>`;});
-    html+=`<option value="Other" ${selVal==='Other'?'selected':''}>Other</option>`;
-    html+='</select>';
-    if(selVal==='Other'){
-      html+=`<input class="absence-input" style="margin-top:4px" placeholder="Specify reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+  // Excuse EVERY student for the current session with the reason chosen in the bulk bar.
+  function markAllExcused() {
+    const reason = document.getElementById('bulk-excuse-reason').value;
+    getStudents().forEach((s) => {
+      store[KA(currentCenter, currentWeek, currentDay, s)] = 'E';
+      store[KR(currentCenter, currentWeek, currentDay, s)] = reason;
+    });
+    touchStore();
+    renderRegister();
+  }
+  // Excuse only the checked ("selected") students with the reason chosen in the bulk bar —
+  // use this when just a handful of students are excused rather than the whole class.
+  function markSelectedExcused() {
+    if (!selectedForBulk.size) {
+      alert('Tick the checkbox next to at least one student first.');
+      return;
     }
-    return html;
+    const reason = document.getElementById('bulk-excuse-reason').value;
+    selectedForBulk.forEach((s) => {
+      store[KA(currentCenter, currentWeek, currentDay, s)] = 'E';
+      store[KR(currentCenter, currentWeek, currentDay, s)] = reason;
+    });
+    touchStore();
+    renderRegister();
   }
-  if(v==='A'){
-    return `<input class="absence-input" placeholder="Enter reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+  function toggleSelectAll(chk) {
+    const query = (
+      document.getElementById('search-input').value || ''
+    ).toLowerCase();
+    const names = getStudents().filter((s) => s.toLowerCase().includes(query));
+    if (chk.checked) names.forEach((n) => selectedForBulk.add(n));
+    else names.forEach((n) => selectedForBulk.delete(n));
+    renderRegister();
   }
-  return `<input class="absence-input" placeholder="—" value="" disabled style="opacity:.35">`;
-}
-function onExcuseReasonChange(sel){
-  const val=sel.value;
-  store[sel.dataset.kr]=(val==='Other')?'':val;
-  touchStore();renderRegister();
-}
 
-function renderRegister(){
-  const w=currentWeek,d=currentDay;
-  const query=(document.getElementById('search-input').value||'').toLowerCase();
-  const all=getStudents();const filtered=all.filter(s=>s.toLowerCase().includes(query));
-  const body=document.getElementById('reg-body');body.innerHTML='';
-  let P=0,A=0,E=0,none=0;
-  all.forEach(s=>{const v=store[KA(currentCenter,w,d,s)]||'none';if(v==='P')P++;else if(v==='A')A++;else if(v==='E')E++;else none++;});
-  const sess=WEEKS[w]?WEEKS[w].sessions[d]:null;
-  document.getElementById('att-stats').innerHTML=`
+  // Builds the reason cell: a preset dropdown (+ free-text "Other") for Excused,
+  // a plain free-text box for Absent, and a disabled placeholder otherwise.
+  function renderReasonCell(v, kr, abv) {
+    if (v === 'E') {
+      const selVal = EXCUSE_REASONS.includes(abv) ? abv : abv ? 'Other' : '';
+      let html = `<select class="absence-input" data-kr="${escapeHtml(kr)}" onchange="onExcuseReasonChange(this)">`;
+      html += `<option value="" ${selVal === '' ? 'selected' : ''}>Select reason…</option>`;
+      EXCUSE_REASONS.forEach((r) => {
+        html += `<option value="${r}" ${selVal === r ? 'selected' : ''}>${r}</option>`;
+      });
+      html += `<option value="Other" ${selVal === 'Other' ? 'selected' : ''}>Other</option>`;
+      html += '</select>';
+      if (selVal === 'Other') {
+        html += `<input class="absence-input" style="margin-top:4px" placeholder="Specify reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+      }
+      return html;
+    }
+    if (v === 'A') {
+      return `<input class="absence-input" placeholder="Enter reason…" value="${escapeHtml(abv)}" data-kr="${escapeHtml(kr)}" oninput="store[this.dataset.kr]=this.value;touchStore()">`;
+    }
+    return `<input class="absence-input" placeholder="—" value="" disabled style="opacity:.35">`;
+  }
+  function onExcuseReasonChange(sel) {
+    const val = sel.value;
+    store[sel.dataset.kr] = val === 'Other' ? '' : val;
+    touchStore();
+    renderRegister();
+  }
+
+  function renderRegister() {
+    const w = currentWeek,
+      d = currentDay;
+    const query = (
+      document.getElementById('search-input').value || ''
+    ).toLowerCase();
+    const all = getStudents();
+    const filtered = all.filter((s) => s.toLowerCase().includes(query));
+    const body = document.getElementById('reg-body');
+    body.innerHTML = '';
+    let P = 0,
+      A = 0,
+      E = 0,
+      none = 0;
+    all.forEach((s) => {
+      const v = store[KA(currentCenter, w, d, s)] || 'none';
+      if (v === 'P') P++;
+      else if (v === 'A') A++;
+      else if (v === 'E') E++;
+      else none++;
+    });
+    const sess = WEEKS[w] ? WEEKS[w].sessions[d] : null;
+    document.getElementById('att-stats').innerHTML = `
     <div class="stat"><div class="stat-label">Total students</div><div class="stat-val">${all.length}</div></div>
     <div class="stat"><div class="stat-label">Present</div><div class="stat-val green">${P}</div></div>
     <div class="stat"><div class="stat-label">Absent</div><div class="stat-val red">${A}</div></div>
     <div class="stat"><div class="stat-label">Excused</div><div class="stat-val" style="color:var(--amber)">${E}</div></div>
     <div class="stat"><div class="stat-label">Not marked</div><div class="stat-val" style="color:var(--ink-mute)">${none}</div></div>
-    <div class="stat"><div class="stat-label">Attendance %</div><div class="stat-val">${Math.round((P/Math.max(P+A+E,1))*100)}%</div></div>
-    ${sess?`<div class="stat"><div class="stat-label">Session</div><div class="stat-val" style="font-size:13px">${FMT(sess.date)}</div></div>`:''}
+    <div class="stat"><div class="stat-label">Attendance %</div><div class="stat-val">${Math.round((P / Math.max(P + A + E, 1)) * 100)}%</div></div>
+    ${sess ? `<div class="stat"><div class="stat-label">Session</div><div class="stat-val" style="font-size:13px">${FMT(sess.date)}</div></div>` : ''}
   `;
-  filtered.forEach(s=>{
-    const kv=KA(currentCenter,w,d,s),kr=KR(currentCenter,w,d,s);
-    const v=store[kv]||'none',abv=store[kr]||'';
-    const idx=all.indexOf(s);const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td data-label="Select"><input type="checkbox" class="row-chk" data-s="${escapeHtml(s)}" ${selectedForBulk.has(s)?'checked':''}></td>
-      <td class="idx-col" style="color:var(--ink-mute);font-size:12px">${idx+1}</td>
-      <td data-label="Student" style="font-weight:${v==='P'?'600':'500'}">${escapeHtml(s)}</td>
+    filtered.forEach((s) => {
+      const kv = KA(currentCenter, w, d, s),
+        kr = KR(currentCenter, w, d, s);
+      const v = store[kv] || 'none',
+        abv = store[kr] || '';
+      const idx = all.indexOf(s);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+      <td data-label="Select"><input type="checkbox" class="row-chk" data-s="${escapeHtml(s)}" ${selectedForBulk.has(s) ? 'checked' : ''}></td>
+      <td class="idx-col" style="color:var(--ink-mute);font-size:12px">${idx + 1}</td>
+      <td data-label="Student" style="font-weight:${v === 'P' ? '600' : '500'}">${escapeHtml(s)}</td>
       <td data-label="Attendance">
         <div class="att-wrap">
-          <button class="att-btn ${v==='P'?'st-P':'st-none-P'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="P">P</button>
-          <button class="att-btn ${v==='A'?'st-A':'st-none-A'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="A">A</button>
-          <button class="att-btn ${v==='E'?'st-E':'st-none-E'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="E">E</button>
+          <button class="att-btn ${v === 'P' ? 'st-P' : 'st-none-P'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="P">P</button>
+          <button class="att-btn ${v === 'A' ? 'st-A' : 'st-none-A'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="A">A</button>
+          <button class="att-btn ${v === 'E' ? 'st-E' : 'st-none-E'}" data-s="${escapeHtml(s)}" data-w="${w}" data-d="${d}" data-v="E">E</button>
         </div>
       </td>
-      <td data-label="Reason">${renderReasonCell(v,kr,abv)}</td>
+      <td data-label="Reason">${renderReasonCell(v, kr, abv)}</td>
     `;
-    body.appendChild(tr);
-  });
-  document.querySelectorAll('.att-btn').forEach(btn=>{
-    btn.addEventListener('click',function(){
-      const{s,w,d,v}=this.dataset;const k=KA(currentCenter,parseInt(w),parseInt(d),s);
-      store[k]=(store[k]===v)?'none':v;touchStore();renderRegister();
+      body.appendChild(tr);
     });
-  });
-  document.querySelectorAll('.row-chk').forEach(chk=>{
-    chk.addEventListener('change',function(){
-      const s=this.dataset.s;
-      if(this.checked)selectedForBulk.add(s);else selectedForBulk.delete(s);
+    document.querySelectorAll('.att-btn').forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const { s, w, d, v } = this.dataset;
+        const k = KA(currentCenter, parseInt(w), parseInt(d), s);
+        store[k] = store[k] === v ? 'none' : v;
+        touchStore();
+        renderRegister();
+      });
     });
-  });
-  const selAllChk=document.getElementById('select-all-chk');
-  if(selAllChk)selAllChk.checked=filtered.length>0&&filtered.every(s=>selectedForBulk.has(s));
-}
+    document.querySelectorAll('.row-chk').forEach((chk) => {
+      chk.addEventListener('change', function () {
+        const s = this.dataset.s;
+        if (this.checked) selectedForBulk.add(s);
+        else selectedForBulk.delete(s);
+      });
+    });
+    const selAllChk = document.getElementById('select-all-chk');
+    if (selAllChk)
+      selAllChk.checked =
+        filtered.length > 0 && filtered.every((s) => selectedForBulk.has(s));
+  }
 
-function renderUptime(){
-  const list=document.getElementById('uptime-list');list.innerHTML='';
-  let totalUp=0,totalPlan=0,logged=0;
-  WEEKS.forEach((wk,wi)=>{
-    const nk=KN(currentCenter,wi);const nVal=store[nk]||'';
-    let wUp=0,wPlan=0;
-    wk.sessions.forEach((_,di)=>{wUp+=parseFloat(store[KU(currentCenter,wi,di,'actual')])||0;wPlan+=parseFloat(store[KU(currentCenter,wi,di,'planned')])||0;});
-    if(wPlan>0){totalPlan+=wPlan;totalUp+=wUp;logged++;}
-    const wPct=wPlan>0?Math.min(100,Math.round((wUp/wPlan)*100)):null;
-    const wColor=wPct===null?'var(--ink-mute)':wPct>=80?'var(--green)':wPct>=50?'var(--amber)':'var(--red)';
-    let sessHtml='';
-    wk.sessions.forEach((sess,di)=>{
-      const fk=KU(currentCenter,wi,di,'actual'),pk=KU(currentCenter,wi,di,'planned');
-      const fv=store[fk]||'',pv=store[pk]||'';
-      const pct=pv&&fv?Math.min(100,Math.round((parseFloat(fv)/parseFloat(pv))*100)):null;
-      const fc=pct===null?'empty':pct>=80?'good':pct>=50?'warn':'bad';
-      const pc=pct===null?'var(--ink-mute)':pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
-      sessHtml+=`<div class="session-row">
+  function renderUptime() {
+    const list = document.getElementById('uptime-list');
+    list.innerHTML = '';
+    let totalUp = 0,
+      totalPlan = 0,
+      logged = 0;
+    WEEKS.forEach((wk, wi) => {
+      const nk = KN(currentCenter, wi);
+      const nVal = store[nk] || '';
+      let wUp = 0,
+        wPlan = 0;
+      wk.sessions.forEach((_, di) => {
+        wUp += parseFloat(store[KU(currentCenter, wi, di, 'actual')]) || 0;
+        wPlan += parseFloat(store[KU(currentCenter, wi, di, 'planned')]) || 0;
+      });
+      if (wPlan > 0) {
+        totalPlan += wPlan;
+        totalUp += wUp;
+        logged++;
+      }
+      const wPct =
+        wPlan > 0 ? Math.min(100, Math.round((wUp / wPlan) * 100)) : null;
+      const wColor =
+        wPct === null
+          ? 'var(--ink-mute)'
+          : wPct >= 80
+            ? 'var(--green)'
+            : wPct >= 50
+              ? 'var(--amber)'
+              : 'var(--red)';
+      let sessHtml = '';
+      wk.sessions.forEach((sess, di) => {
+        const fk = KU(currentCenter, wi, di, 'actual'),
+          pk = KU(currentCenter, wi, di, 'planned');
+        const fv = store[fk] || '',
+          pv = store[pk] || '';
+        const pct =
+          pv && fv
+            ? Math.min(100, Math.round((parseFloat(fv) / parseFloat(pv)) * 100))
+            : null;
+        const fc =
+          pct === null
+            ? 'empty'
+            : pct >= 80
+              ? 'good'
+              : pct >= 50
+                ? 'warn'
+                : 'bad';
+        const pc =
+          pct === null
+            ? 'var(--ink-mute)'
+            : pct >= 80
+              ? 'var(--green)'
+              : pct >= 50
+                ? 'var(--amber)'
+                : 'var(--red)';
+        sessHtml += `<div class="session-row">
         <div style="font-size:12px;font-weight:500;color:var(--ink)">${sess.name}<span style="font-size:11px;color:var(--ink-mute);margin-left:4px">${FMTS(sess.date)}</span></div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <label style="font-size:11px;color:var(--ink-soft)">Planned hrs</label>
           <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${pv}" data-k="${pk}" oninput="store[this.dataset.k]=this.value;touchStore();renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
           <label style="font-size:11px;color:var(--ink-soft)">Actual hrs</label>
           <input type="number" min="0" max="12" step="0.5" placeholder="0" value="${fv}" data-k="${fk}" oninput="store[this.dataset.k]=this.value;touchStore();renderUptime()" style="width:58px;font-size:12px;padding:3px 6px;border-radius:var(--radius-md);border:0.5px solid var(--line);background:var(--surface-alt);color:var(--ink)">
-          <div class="uptime-bar"><div class="uptime-fill ${fc}" style="width:${pct||0}%"></div></div>
-          <span style="font-size:12px;font-weight:500;min-width:34px;text-align:right;color:${pc}">${pct!==null?pct+'%':'—'}</span>
+          <div class="uptime-bar"><div class="uptime-fill ${fc}" style="width:${pct || 0}%"></div></div>
+          <span style="font-size:12px;font-weight:500;min-width:34px;text-align:right;color:${pc}">${pct !== null ? pct + '%' : '—'}</span>
         </div>
       </div>`;
-    });
-    const block=document.createElement('div');block.className='uptime-week';
-    block.innerHTML=`
+      });
+      const block = document.createElement('div');
+      block.className = 'uptime-week';
+      block.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
-        <div><span style="font-size:13px;font-weight:500;color:var(--ink)">Week ${wi+1}</span><span style="font-size:11px;color:var(--ink-mute);margin-left:8px">${FMTS(wk.sessions[0].date)} – ${FMTS(wk.sessions[wk.sessions.length-1].date)}</span></div>
-        <div style="font-size:11px;color:var(--ink-soft)">Week total: <strong style="color:${wColor}">${wPct!==null?wPct+'%':'not logged'}</strong></div>
+        <div><span style="font-size:13px;font-weight:500;color:var(--ink)">Week ${wi + 1}</span><span style="font-size:11px;color:var(--ink-mute);margin-left:8px">${FMTS(wk.sessions[0].date)} – ${FMTS(wk.sessions[wk.sessions.length - 1].date)}</span></div>
+        <div style="font-size:11px;color:var(--ink-soft)">Week total: <strong style="color:${wColor}">${wPct !== null ? wPct + '%' : 'not logged'}</strong></div>
       </div>
       ${sessHtml}
       <textarea class="week-notes" rows="2" placeholder="Week notes / issues…" data-nk="${nk}" oninput="store[this.dataset.nk]=this.value;touchStore()">${escapeHtml(nVal)}</textarea>
     `;
-    list.appendChild(block);
-  });
-  const op=totalPlan>0?Math.round((totalUp/totalPlan)*100):0;
-  document.getElementById('uptime-stats').innerHTML=`
+      list.appendChild(block);
+    });
+    const op = totalPlan > 0 ? Math.round((totalUp / totalPlan) * 100) : 0;
+    document.getElementById('uptime-stats').innerHTML = `
     <div class="stat"><div class="stat-label">Total weeks</div><div class="stat-val">${WEEKS.length}</div></div>
     <div class="stat"><div class="stat-label">Sessions/week</div><div class="stat-val">${CENTER_DAYS[currentCenter].length}</div></div>
     <div class="stat"><div class="stat-label">Weeks logged</div><div class="stat-val">${logged}</div></div>
     <div class="stat"><div class="stat-label">Planned hrs</div><div class="stat-val">${totalPlan.toFixed(1)}</div></div>
     <div class="stat"><div class="stat-label">Actual hrs</div><div class="stat-val green">${totalUp.toFixed(1)}</div></div>
-    <div class="stat"><div class="stat-label">Overall uptime</div><div class="stat-val ${op>=80?'green':op>=50?'':'red'}">${totalPlan>0?op+'%':'—'}</div></div>
+    <div class="stat"><div class="stat-label">Overall uptime</div><div class="stat-val ${op >= 80 ? 'green' : op >= 50 ? '' : 'red'}">${totalPlan > 0 ? op + '%' : '—'}</div></div>
   `;
-}
+  }
 
-function renderReports(){
-  const list=document.getElementById('reports-list');list.innerHTML='';
-  if(!reports.length){list.innerHTML='<div style="font-size:13px;color:var(--ink-mute);text-align:center;padding:2rem">No reports yet.</div>';return;}
-  const sorted=reports;
-  sorted.forEach(r=>{
-    const recs=(r.recs||'').split('\n').filter(x=>x.trim());
-    const items=challengeItems.filter(c=>String(c.report_id)===String(r.id));
-    const resolvedCount=items.filter(c=>c.resolved).length;
-    const div=document.createElement('div');div.className='report-card';
-    div.innerHTML=`
+  function renderReports() {
+    const list = document.getElementById('reports-list');
+    list.innerHTML = '';
+    if (!reports.length) {
+      list.innerHTML =
+        '<div style="font-size:13px;color:var(--ink-mute);text-align:center;padding:2rem">No reports yet.</div>';
+      return;
+    }
+    const sorted = reports;
+    sorted.forEach((r) => {
+      const recs = (r.recs || '').split('\n').filter((x) => x.trim());
+      const items = challengeItems.filter(
+        (c) => String(c.report_id) === String(r.id),
+      );
+      const resolvedCount = items.filter((c) => c.resolved).length;
+      const div = document.createElement('div');
+      div.className = 'report-card';
+      div.innerHTML = `
       <div class="report-header" onclick="this.nextElementSibling.classList.toggle('open')">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h3>Week ending ${escapeHtml(r.date)}</h3>
-          ${items.length?`<span style="font-size:10.5px;color:#B5D4F4;background:rgba(255,255,255,.14);padding:2px 9px;border-radius:999px">${resolvedCount}/${items.length} resolved</span>`:''}
+          ${items.length ? `<span style="font-size:10.5px;color:#B5D4F4;background:rgba(255,255,255,.14);padding:2px 9px;border-radius:999px">${resolvedCount}/${items.length} resolved</span>` : ''}
         </div>
         <span style="color:#B5D4F4;font-size:14px">+</span>
       </div>
       <div class="report-body">
         <div class="report-section">
           <h4 style="color:#A32D2D">Challenges</h4>
-          ${items.length?items.map(c=>`
+          ${
+            items.length
+              ? items
+                  .map(
+                    (c) => `
             <div class="challenge-item" style="align-items:center;cursor:pointer" onclick="toggleChallenge(${c.id},${c.resolved})">
-              <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved?'var(--green)':'var(--red)'};background:${c.resolved?'var(--green)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px">${c.resolved?'<span style="color:#fff;font-size:11px;font-weight:700">✓</span>':''}</div>
-              <span style="${c.resolved?'text-decoration:line-through;color:var(--ink-mute)':''}">${escapeHtml(c.description)}</span>
-            </div>`).join(''):'<p style="font-size:12.5px;color:var(--ink-mute)">No challenges logged for this report.</p>'}
+              <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${c.resolved ? 'var(--green)' : 'var(--red)'};background:${c.resolved ? 'var(--green)' : 'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px">${c.resolved ? '<span style="color:#fff;font-size:11px;font-weight:700">✓</span>' : ''}</div>
+              <span style="${c.resolved ? 'text-decoration:line-through;color:var(--ink-mute)' : ''}">${escapeHtml(c.description)}</span>
+            </div>`,
+                  )
+                  .join('')
+              : '<p style="font-size:12.5px;color:var(--ink-mute)">No challenges logged for this report.</p>'
+          }
         </div>
         <div class="report-section">
           <h4 style="color:#1E5631">Recommendations</h4>
-          ${recs.map(c=>`<div class="rec-item"><div class="rec-dot"></div><span>${escapeHtml(c)}</span></div>`).join('')}
+          ${recs.map((c) => `<div class="rec-item"><div class="rec-dot"></div><span>${escapeHtml(c)}</span></div>`).join('')}
         </div>
-        <div class="report-section"><h4>Data insights / learning gaps</h4><p style="white-space:pre-wrap">${escapeHtml(r.insights||'Not recorded')}</p><h4>Intervention and review plan</h4><p style="white-space:pre-wrap">${escapeHtml(r.intervention||'Not recorded')}</p></div>
+        <div class="report-section"><h4>Data insights / learning gaps</h4><p style="white-space:pre-wrap">${escapeHtml(r.insights || 'Not recorded')}</p><h4>Intervention and review plan</h4><p style="white-space:pre-wrap">${escapeHtml(r.intervention || 'Not recorded')}</p></div>
         <div style="text-align:right;margin-top:8px">
           <button onclick="deleteReport('${r.id}')" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;text-decoration:underline">Delete report</button>
         </div>
       </div>
     `;
-    list.appendChild(div);
-  });
-}
-
-async function toggleChallenge(id,currentlyResolved){
-  const newVal=!currentlyResolved;
-  const item=challengeItems.find(c=>c.id===id);
-  if(item){item.resolved=newVal;} // optimistic update
-  renderReports();if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
-  if(sb){
-    const{error}=await sb.from('challenge_items').update({resolved:newVal,resolved_at:newVal?new Date().toISOString():null}).eq('id',id);
-    if(error){
-      console.error('Failed to update challenge status',error);
-      if(item)item.resolved=currentlyResolved; // revert on failure
-      renderReports();if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
-    }
-  }
-}
-
-async function addReport(){
-  const date=document.getElementById('rpt-date').value.trim();
-  const challenges=document.getElementById('rpt-challenges').value.trim();
-  const recs=document.getElementById('rpt-recs').value.trim();
-  const insights=document.getElementById('rpt-insights').value.trim(),intervention=document.getElementById('rpt-intervention').value.trim();
-  if(!date){alert('Please enter at least a date.');return;}
-  if(sb){
-    const{data,error}=await sb.from('weekly_reports').insert({centre_id:centreIdByName[currentCenter],academic_year:academicYear,report_date:date,challenges,recommendations:recs,data_insights:insights,intervention_plan:intervention}).select('id').single();
-    if(error){alert('Failed to save report to database: '+error.message);return;}
-    const lines=challenges.split('\n').map(x=>x.trim()).filter(Boolean);
-    if(lines.length&&data){
-      const rows=lines.map(description=>({report_id:data.id,description,resolved:false}));
-      const{error:ce}=await sb.from('challenge_items').insert(rows);
-      if(ce)console.error('Failed to save challenge items',ce);
-    }
-    await loadReportsFromDB();
-    await loadChallengeItemsFromDB();
-  }else{
-    const id='r'+Date.now();
-    reports.push({id,date,challenges,recs});
-    challenges.split('\n').map(x=>x.trim()).filter(Boolean).forEach((description,i)=>{
-      challengeItems.push({id:'c'+Date.now()+i,report_id:id,description,resolved:false});
+      list.appendChild(div);
     });
   }
-  document.getElementById('rpt-date').value='';
-  document.getElementById('rpt-challenges').value='';
-  document.getElementById('rpt-recs').value='';
-  document.getElementById('rpt-insights').value='';document.getElementById('rpt-intervention').value='';
-  renderReports();
-  if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
-}
-async function deleteReport(id){
-  if(sb){
-    const{error}=await sb.from('weekly_reports').delete().eq('id',id);
-    if(error){alert('Failed to delete report: '+error.message);return;}
-    await loadReportsFromDB();
-    await loadChallengeItemsFromDB();
-  }else{
-    reports=reports.filter(r=>String(r.id)!==String(id));
-    challengeItems=challengeItems.filter(c=>String(c.report_id)!==String(id));
-  }
-  renderReports();
-  if(document.getElementById('section-dashboard').style.display!=='none')renderDashboard();
-}
 
-let savingPromise=Promise.resolve(true);
-function saveAll(){
-  savingPromise=savingPromise.then(()=>saveAllInternal(),()=>saveAllInternal());
-  return savingPromise;
-}
-async function saveAllInternal(){
-  if(!sb||!databaseReady){alert('Database unavailable. Changes have not been saved.');return false;}
-  try{
-    // 1. Work out which (centre, date) sessions are touched by data in `store`
-    const sessionsNeeded=new Map();
-    Object.keys(store).forEach(k=>{
-      const parts=k.split('|');
-      if(parts[0]==='att'||parts[0]==='abs'||parts[0]==='up'){
-        const centre=parts[1],w=parseInt(parts[2]),d=parseInt(parts[3]);
-        const wk=(WEEKS.length&&centre===currentCenter?WEEKS:getWeeksWithDays(centre))[w];
-        if(wk&&wk.sessions[d]){
-          const date=isoDate(wk.sessions[d].date);
-          sessionsNeeded.set(`${centre}|${date}`,{centre_id:centreIdByName[centre],session_date:date,_key:`${centre}|${date}`});
+  async function toggleChallenge(id, currentlyResolved) {
+    const newVal = !currentlyResolved;
+    const item = challengeItems.find((c) => c.id === id);
+    if (item) {
+      item.resolved = newVal;
+    } // optimistic update
+    renderReports();
+    if (document.getElementById('section-dashboard').style.display !== 'none')
+      renderDashboard();
+    if (sb) {
+      const { error } = await sb
+        .from('challenge_items')
+        .update({
+          resolved: newVal,
+          resolved_at: newVal ? new Date().toISOString() : null,
+        })
+        .eq('id', id);
+      if (error) {
+        console.error('Failed to update challenge status', error);
+        if (item) item.resolved = currentlyResolved; // revert on failure
+        renderReports();
+        if (
+          document.getElementById('section-dashboard').style.display !== 'none'
+        )
+          renderDashboard();
+      }
+    }
+  }
+
+  async function addReport() {
+    const date = document.getElementById('rpt-date').value.trim();
+    const challenges = document.getElementById('rpt-challenges').value.trim();
+    const recs = document.getElementById('rpt-recs').value.trim();
+    const insights = document.getElementById('rpt-insights').value.trim(),
+      intervention = document.getElementById('rpt-intervention').value.trim();
+    if (!date) {
+      alert('Please enter at least a date.');
+      return;
+    }
+    if (sb) {
+      const { data, error } = await sb
+        .from('weekly_reports')
+        .insert({
+          centre_id: centreIdByName[currentCenter],
+          academic_year: academicYear,
+          report_date: date,
+          challenges,
+          recommendations: recs,
+          data_insights: insights,
+          intervention_plan: intervention,
+        })
+        .select('id')
+        .single();
+      if (error) {
+        alert('Failed to save report to database: ' + error.message);
+        return;
+      }
+      const lines = challenges
+        .split('\n')
+        .map((x) => x.trim())
+        .filter(Boolean);
+      if (lines.length && data) {
+        const rows = lines.map((description) => ({
+          report_id: data.id,
+          description,
+          resolved: false,
+        }));
+        const { error: ce } = await sb.from('challenge_items').insert(rows);
+        if (ce) console.error('Failed to save challenge items', ce);
+      }
+      await loadReportsFromDB();
+      await loadChallengeItemsFromDB();
+    } else {
+      const id = 'r' + Date.now();
+      reports.push({ id, date, challenges, recs });
+      challenges
+        .split('\n')
+        .map((x) => x.trim())
+        .filter(Boolean)
+        .forEach((description, i) => {
+          challengeItems.push({
+            id: 'c' + Date.now() + i,
+            report_id: id,
+            description,
+            resolved: false,
+          });
+        });
+    }
+    document.getElementById('rpt-date').value = '';
+    document.getElementById('rpt-challenges').value = '';
+    document.getElementById('rpt-recs').value = '';
+    document.getElementById('rpt-insights').value = '';
+    document.getElementById('rpt-intervention').value = '';
+    renderReports();
+    if (document.getElementById('section-dashboard').style.display !== 'none')
+      renderDashboard();
+  }
+  async function deleteReport(id) {
+    if (sb) {
+      const { error } = await sb.from('weekly_reports').delete().eq('id', id);
+      if (error) {
+        alert('Failed to delete report: ' + error.message);
+        return;
+      }
+      await loadReportsFromDB();
+      await loadChallengeItemsFromDB();
+    } else {
+      reports = reports.filter((r) => String(r.id) !== String(id));
+      challengeItems = challengeItems.filter(
+        (c) => String(c.report_id) !== String(id),
+      );
+    }
+    renderReports();
+    if (document.getElementById('section-dashboard').style.display !== 'none')
+      renderDashboard();
+  }
+
+  let savingPromise = Promise.resolve(true);
+  function saveAll() {
+    savingPromise = savingPromise.then(
+      () => saveAllInternal(),
+      () => saveAllInternal(),
+    );
+    return savingPromise;
+  }
+  async function saveAllInternal() {
+    if (!sb || !databaseReady) {
+      alert('Database unavailable. Changes have not been saved.');
+      return false;
+    }
+    try {
+      // 1. Work out which (centre, date) sessions are touched by data in `store`
+      const sessionsNeeded = new Map();
+      Object.keys(store).forEach((k) => {
+        const parts = k.split('|');
+        if (parts[0] === 'att' || parts[0] === 'abs' || parts[0] === 'up') {
+          const centre = parts[1],
+            w = parseInt(parts[2]),
+            d = parseInt(parts[3]);
+          const wk = (
+            WEEKS.length && centre === currentCenter
+              ? WEEKS
+              : getWeeksWithDays(centre)
+          )[w];
+          if (wk && wk.sessions[d]) {
+            const date = isoDate(wk.sessions[d].date);
+            sessionsNeeded.set(`${centre}|${date}`, {
+              centre_id: centreIdByName[centre],
+              session_date: date,
+              _key: `${centre}|${date}`,
+            });
+          }
         }
+      });
+      if (sessionsNeeded.size) {
+        const rows = [...sessionsNeeded.values()].map(({ _key, ...r }) => r);
+        const { data: upserted, error } = await sb
+          .from('sessions')
+          .upsert(rows, { onConflict: 'centre_id,session_date' })
+          .select('id,centre_id,session_date');
+        if (error) throw error;
+        const centreNameById = {};
+        Object.entries(centreIdByName).forEach(
+          ([n, id]) => (centreNameById[id] = n),
+        );
+        upserted.forEach((s) => {
+          sessionIdCache[`${centreNameById[s.centre_id]}|${s.session_date}`] =
+            s.id;
+        });
       }
-    });
-    if(sessionsNeeded.size){
-      const rows=[...sessionsNeeded.values()].map(({_key,...r})=>r);
-      const{data:upserted,error}=await sb.from('sessions').upsert(rows,{onConflict:'centre_id,session_date'}).select('id,centre_id,session_date');
-      if(error)throw error;
-      const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
-      upserted.forEach(s=>{sessionIdCache[`${centreNameById[s.centre_id]}|${s.session_date}`]=s.id;});
-    }
-    // 2. Build attendance, uptime and note rows from `store`
-    const attRows=[],clearedRows=[],noteRows=[];const upMap=new Map();
-    Object.keys(store).forEach(k=>{
-      const parts=k.split('|');const type=parts[0];
-      if(type==='att'){
-        const[,centre,w,d,name]=parts;
-        const wk=(WEEKS.length&&centre===currentCenter?WEEKS:getWeeksWithDays(centre))[parseInt(w)];
-        if(!wk||!wk.sessions[parseInt(d)])return;
-        const date=isoDate(wk.sessions[parseInt(d)].date);
-        const sessId=sessionIdCache[`${centre}|${date}`];const studId=studentIdByName[`${centre}|${name}`];
-        if(!sessId||!studId)return;
-        const status=store[k];
-        if(status==='none'){clearedRows.push({student_id:studId,session_id:sessId});return;}
-        const reason=store[KR(centre,w,d,name)]||null;
-        const reasonCode=status==='E'?reasonCodeFor(reason):null;
-        attRows.push({student_id:studId,session_id:sessId,status,reason,reason_code:reasonCode});
-      }else if(type==='up'){
-        const[,centre,w,d,field]=parts;
-        const wk=(WEEKS.length&&centre===currentCenter?WEEKS:getWeeksWithDays(centre))[parseInt(w)];
-        if(!wk||!wk.sessions[parseInt(d)])return;
-        const date=isoDate(wk.sessions[parseInt(d)].date);
-        const sessId=sessionIdCache[`${centre}|${date}`];
-        if(!sessId)return;
-        const val=parseFloat(store[k]);if(isNaN(val))return;
-        if(!upMap.has(sessId))upMap.set(sessId,{session_id:sessId});
-        upMap.get(sessId)[field==='planned'?'planned_hours':'actual_hours']=val;
-      }else if(type==='note'){
-        const[,centre,w]=parts;
-        noteRows.push({academic_year:academicYear,centre_id:centreIdByName[centre],week_number:parseInt(w),notes:store[k]});
+      // 2. Build attendance, uptime and note rows from `store`
+      const attRows = [],
+        clearedRows = [],
+        noteRows = [];
+      const upMap = new Map();
+      Object.keys(store).forEach((k) => {
+        const parts = k.split('|');
+        const type = parts[0];
+        if (type === 'att') {
+          const [, centre, w, d, name] = parts;
+          const wk = (
+            WEEKS.length && centre === currentCenter
+              ? WEEKS
+              : getWeeksWithDays(centre)
+          )[parseInt(w)];
+          if (!wk || !wk.sessions[parseInt(d)]) return;
+          const date = isoDate(wk.sessions[parseInt(d)].date);
+          const sessId = sessionIdCache[`${centre}|${date}`];
+          const studId = studentIdByName[`${centre}|${name}`];
+          if (!sessId || !studId) return;
+          const status = store[k];
+          if (status === 'none') {
+            clearedRows.push({ student_id: studId, session_id: sessId });
+            return;
+          }
+          const reason = store[KR(centre, w, d, name)] || null;
+          const reasonCode = status === 'E' ? reasonCodeFor(reason) : null;
+          attRows.push({
+            student_id: studId,
+            session_id: sessId,
+            status,
+            reason,
+            reason_code: reasonCode,
+          });
+        } else if (type === 'up') {
+          const [, centre, w, d, field] = parts;
+          const wk = (
+            WEEKS.length && centre === currentCenter
+              ? WEEKS
+              : getWeeksWithDays(centre)
+          )[parseInt(w)];
+          if (!wk || !wk.sessions[parseInt(d)]) return;
+          const date = isoDate(wk.sessions[parseInt(d)].date);
+          const sessId = sessionIdCache[`${centre}|${date}`];
+          if (!sessId) return;
+          const val = parseFloat(store[k]);
+          if (isNaN(val)) return;
+          if (!upMap.has(sessId)) upMap.set(sessId, { session_id: sessId });
+          upMap.get(sessId)[
+            field === 'planned' ? 'planned_hours' : 'actual_hours'
+          ] = val;
+        } else if (type === 'note') {
+          const [, centre, w] = parts;
+          noteRows.push({
+            academic_year: academicYear,
+            centre_id: centreIdByName[centre],
+            week_number: parseInt(w),
+            notes: store[k],
+          });
+        }
+      });
+      if (attRows.length) {
+        const { error } = await sb
+          .from('attendance')
+          .upsert(attRows, { onConflict: 'student_id,session_id' });
+        if (error) throw error;
       }
-    });
-    if(attRows.length){const{error}=await sb.from('attendance').upsert(attRows,{onConflict:'student_id,session_id'});if(error)throw error;}
-    for(const row of clearedRows){const{error}=await sb.from('attendance').delete().eq('student_id',row.student_id).eq('session_id',row.session_id);if(error)throw error;}
-    const upRows=[...upMap.values()];
-    if(upRows.length){const{error}=await sb.from('lab_uptime').upsert(upRows,{onConflict:'session_id'});if(error)throw error;}
-    if(noteRows.length){const{error}=await sb.from('week_notes').upsert(noteRows,{onConflict:'centre_id,academic_year,week_number'});if(error)throw error;}
-    showToast();return true;
-  }catch(e){
-    console.error('Save to database failed',e);
-    alert('Save failed: '+(e.message||e)+'\n\nCheck your internet connection and try again.');return false;
-  }
-}
-function showToast(){
-  const t=document.getElementById('toast');t.style.display='inline';setTimeout(()=>t.style.display='none',2000);
-}
-async function loadReportsFromDB(){
-  const{data,error}=await sb.from('weekly_reports').select('id,report_date,challenges,recommendations,data_insights,intervention_plan,centre_id').eq('academic_year',academicYear).order('id',{ascending:false});
-  if(error)throw error;
-  if(!data||!data.length){reports=[];return;}
-  reports=data.map(r=>({id:r.id,date:r.report_date,challenges:r.challenges||'',recs:r.recommendations||'',insights:r.data_insights||'',intervention:r.intervention_plan||'',centre_id:r.centre_id}));
-}
-async function loadChallengeItemsFromDB(){
-  const{data,error}=await sb.from('challenge_items').select('id,report_id,description,resolved').order('id',{ascending:true});
-  if(error)throw error;
-  challengeItems=(data||[]).filter(c=>reports.some(r=>r.id===c.report_id));
-}
-async function loadCentresAndStudents(){
-  const{data:centres,error:ce}=await sb.from('centres').select('id,name');
-  if(ce)throw ce;
-  centreIdByName={};centres.forEach(c=>centreIdByName[c.name]=c.id);
-  const students=await readAll(()=>sb.from('students').select('id,full_name,centre_id').eq('active',true).eq('academic_year',academicYear).order('id'));
-  studentIdByName={};
-  const byCentre={'Milimani':[],'Coram Deo':[]};
-  const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
-  students.forEach(s=>{
-    studentIdByName[`${centreNameById[s.centre_id]}|${s.full_name}`]=s.id;
-    const cn=centreNameById[s.centre_id];
-    if(byCentre[cn])byCentre[cn].push(s.full_name);
-  });
-  MILIMANI.length=0;MILIMANI.push(...byCentre['Milimani'].sort());
-  CORAM_DEO.length=0;CORAM_DEO.push(...byCentre['Coram Deo'].sort());
-}
-async function loadAttendanceUptimeNotesFromDB(){
-  const dateIndex={'Milimani':buildDateIndex('Milimani'),'Coram Deo':buildDateIndex('Coram Deo')};
-  const centreNameById={};Object.entries(centreIdByName).forEach(([n,id])=>centreNameById[id]=n);
-  const studentNameById={};Object.entries(studentIdByName).forEach(([n,id])=>studentNameById[id]=n.slice(n.indexOf('|')+1));
-
-  const sessions=await readAll(()=>sb.from('sessions').select('id,centre_id,session_date').gte('session_date',`${academicYear}-01-01`).lte('session_date',`${academicYear}-12-31`).order('id'));
-  sessionIdCache={};const sessById={};
-  sessions.forEach(s=>{
-    const centreName=centreNameById[s.centre_id];
-    sessById[s.id]={centreName,date:s.session_date};
-    sessionIdCache[`${centreName}|${s.session_date}`]=s.id;
-  });
-
-  const sessionIds=sessions.map(s=>s.id);
-  const atts=sessionIds.length?await readAll(()=>sb.from('attendance').select('id,student_id,session_id,status,reason').in('session_id',sessionIds).order('id')):[];
-  atts.forEach(a=>{
-    const sess=sessById[a.session_id];if(!sess)return;
-    const idx=dateIndex[sess.centreName]&&dateIndex[sess.centreName][sess.date];if(!idx)return;
-    const name=studentNameById[a.student_id];if(!name)return;
-    store[KA(sess.centreName,idx.wi,idx.di,name)]=a.status;
-    if(a.reason)store[KR(sess.centreName,idx.wi,idx.di,name)]=a.reason;
-  });
-
-  const ups=sessionIds.length?await readAll(()=>sb.from('lab_uptime').select('id,session_id,planned_hours,actual_hours').in('session_id',sessionIds).order('id')):[];
-  ups.forEach(u=>{
-    const sess=sessById[u.session_id];if(!sess)return;
-    const idx=dateIndex[sess.centreName]&&dateIndex[sess.centreName][sess.date];if(!idx)return;
-    if(u.planned_hours!=null)store[KU(sess.centreName,idx.wi,idx.di,'planned')]=u.planned_hours;
-    if(u.actual_hours!=null)store[KU(sess.centreName,idx.wi,idx.di,'actual')]=u.actual_hours;
-  });
-
-  const{data:notes,error:nxe}=await sb.from('week_notes').select('centre_id,week_number,notes').eq('academic_year',academicYear);
-  if(nxe)throw nxe;
-  notes.forEach(n=>{
-    const centreName=centreNameById[n.centre_id];
-    if(centreName)store[KN(centreName,n.week_number)]=n.notes;
-  });
-}
-async function loadData(){
-  databaseReady=false;store={};sessionIdCache={};
-  MILIMANI.length=0;CORAM_DEO.length=0;
-  if(!sb)throw new Error('Database connection unavailable.');
-  await loadCentresAndStudents();
-  await loadAttendanceUptimeNotesFromDB();
-  await loadReportsFromDB();
-  await loadChallengeItemsFromDB();
-  databaseReady=true;setDbStatus('Connected to database',true);
-}
-function renderAll(){
-  document.getElementById('enrolment-target').textContent=`${currentCenter} — ${academicYear}`;
-  WEEKS=getWeeksWithDays(currentCenter);
-  document.getElementById('centre-schedule').textContent=CENTER_SCHEDULE[currentCenter];
-  initWeekSelect();buildDayTabs();renderRegister();
-}
-async function init(){
-  initYearSelect();
-  try{await loadData();}catch(e){setDbStatus('Connection failed',false);document.getElementById('year-message').textContent='Could not load register: '+e.message;}
-  WEEKS=getWeeksWithDays(currentCenter);
-  const idx=findCurrentIndex(WEEKS);currentWeek=idx.wi;currentDay=idx.di;
-  centerView[currentCenter]={week:currentWeek,day:currentDay};
-  renderAll();
-}
-async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const password=document.getElementById('login-password').value;
-  const errEl=document.getElementById('login-error');
-  errEl.textContent='';
-  if(!email||!password){errEl.textContent='Enter both email and password.';return;}
-  if(!sb){errEl.textContent='Database not connected.';return;}
-  const{error}=await sb.auth.signInWithPassword({email,password});
-  if(error){errEl.textContent=error.message;return;}
-  await showApp();
-}
-async function doLogout(){
-  if(!confirm('Sign out of the CISCO Training Programme system?'))return;
-  stopInactivityTimer();
-  clearTimeout(autoSaveTimer);
-  try{
-    await saveAll();
-  }catch(e){
-    console.error('Save before logout failed',e);
-  }
-  try{
-    if(sb)await sb.auth.signOut();
-  }catch(e){
-    console.error('Sign out request failed',e);
-  }
-  // Belt-and-braces: also wipe any locally cached Supabase session
-  // directly, in case the network call above didn't complete.
-  try{
-    Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-'))localStorage.removeItem(k);});
-  }catch(e){console.error('Local session clear failed',e);}
-  location.reload();
-}
-
-// ---- Auto sign-out after inactivity (30 minutes) ----
-const INACTIVITY_LIMIT_MS=30*60*1000;
-let inactivityTimer=null;
-function resetInactivityTimer(){
-  if(!sb)return; // no auth configured, nothing to time out
-  clearTimeout(inactivityTimer);
-  inactivityTimer=setTimeout(autoSignOut,INACTIVITY_LIMIT_MS);
-}
-function stopInactivityTimer(){
-  clearTimeout(inactivityTimer);inactivityTimer=null;
-}
-async function autoSignOut(){
-  clearTimeout(autoSaveTimer);
-  try{await saveAll();}catch(e){console.error('Save before auto sign-out failed',e);}
-  try{if(sb)await sb.auth.signOut();}catch(e){console.error('Auto sign-out request failed',e);}
-  try{Object.keys(localStorage).forEach(k=>{if(k.startsWith('sb-'))localStorage.removeItem(k);});}catch(e){}
-  try{sessionStorage.setItem('cisco_auto_signed_out','1');}catch(e){}
-  location.reload();
-}
-['mousemove','keydown','click','touchstart','scroll'].forEach(evt=>{
-  document.addEventListener(evt,()=>{
-    const root=document.getElementById('app-root');
-    if(root&&root.style.display!=='none')resetInactivityTimer();
-  },{passive:true});
-});
-
-async function showApp(){
-  document.getElementById('login-overlay').style.display='none';
-  document.getElementById('app-root').style.display='';
-  resetInactivityTimer();
-  await init();
-}
-async function checkSession(){
-  try{
-    if(sessionStorage.getItem('cisco_auto_signed_out')){
-      document.getElementById('login-error').textContent='You were signed out after a period of inactivity. Please sign in again.';
-      sessionStorage.removeItem('cisco_auto_signed_out');
+      for (const row of clearedRows) {
+        const { error } = await sb
+          .from('attendance')
+          .delete()
+          .eq('student_id', row.student_id)
+          .eq('session_id', row.session_id);
+        if (error) throw error;
+      }
+      const upRows = [...upMap.values()];
+      if (upRows.length) {
+        const { error } = await sb
+          .from('lab_uptime')
+          .upsert(upRows, { onConflict: 'session_id' });
+        if (error) throw error;
+      }
+      if (noteRows.length) {
+        const { error } = await sb.from('week_notes').upsert(noteRows, {
+          onConflict: 'centre_id,academic_year,week_number',
+        });
+        if (error) throw error;
+      }
+      showToast();
+      return true;
+    } catch (e) {
+      console.error('Save to database failed', e);
+      alert(
+        'Save failed: ' +
+          (e.message || e) +
+          '\n\nCheck your internet connection and try again.',
+      );
+      return false;
     }
-  }catch(e){}
-  if(!sb){
-    // No database connection at all — skip login, run in local-only mode
-    await showApp();
-    return;
   }
-  const{data}=await sb.auth.getSession();
-  if(data&&data.session){
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.style.display = 'inline';
+    setTimeout(() => (t.style.display = 'none'), 2000);
+  }
+  async function loadReportsFromDB() {
+    const { data, error } = await sb
+      .from('weekly_reports')
+      .select(
+        'id,report_date,challenges,recommendations,data_insights,intervention_plan,centre_id',
+      )
+      .eq('academic_year', academicYear)
+      .order('id', { ascending: false });
+    if (error) throw error;
+    if (!data || !data.length) {
+      reports = [];
+      return;
+    }
+    reports = data.map((r) => ({
+      id: r.id,
+      date: r.report_date,
+      challenges: r.challenges || '',
+      recs: r.recommendations || '',
+      insights: r.data_insights || '',
+      intervention: r.intervention_plan || '',
+      centre_id: r.centre_id,
+    }));
+  }
+  async function loadChallengeItemsFromDB() {
+    const { data, error } = await sb
+      .from('challenge_items')
+      .select('id,report_id,description,resolved')
+      .order('id', { ascending: true });
+    if (error) throw error;
+    challengeItems = (data || []).filter((c) =>
+      reports.some((r) => r.id === c.report_id),
+    );
+  }
+  async function loadCentresAndStudents() {
+    const { data: centres, error: ce } = await sb
+      .from('centres')
+      .select('id,name');
+    if (ce) throw ce;
+    centreIdByName = {};
+    centres.forEach((c) => (centreIdByName[c.name] = c.id));
+    const students = await readAll(() =>
+      sb
+        .from('students')
+        .select('id,full_name,centre_id')
+        .eq('active', true)
+        .eq('academic_year', academicYear)
+        .order('id'),
+    );
+    studentIdByName = {};
+    const byCentre = { Milimani: [], 'Coram Deo': [] };
+    const centreNameById = {};
+    Object.entries(centreIdByName).forEach(
+      ([n, id]) => (centreNameById[id] = n),
+    );
+    students.forEach((s) => {
+      studentIdByName[`${centreNameById[s.centre_id]}|${s.full_name}`] = s.id;
+      const cn = centreNameById[s.centre_id];
+      if (byCentre[cn]) byCentre[cn].push(s.full_name);
+    });
+    MILIMANI.length = 0;
+    MILIMANI.push(...byCentre['Milimani'].sort());
+    CORAM_DEO.length = 0;
+    CORAM_DEO.push(...byCentre['Coram Deo'].sort());
+  }
+  async function loadAttendanceUptimeNotesFromDB() {
+    const dateIndex = {
+      Milimani: buildDateIndex('Milimani'),
+      'Coram Deo': buildDateIndex('Coram Deo'),
+    };
+    const centreNameById = {};
+    Object.entries(centreIdByName).forEach(
+      ([n, id]) => (centreNameById[id] = n),
+    );
+    const studentNameById = {};
+    Object.entries(studentIdByName).forEach(
+      ([n, id]) => (studentNameById[id] = n.slice(n.indexOf('|') + 1)),
+    );
+
+    const sessions = await readAll(() =>
+      sb
+        .from('sessions')
+        .select('id,centre_id,session_date')
+        .gte('session_date', `${academicYear}-01-01`)
+        .lte('session_date', `${academicYear}-12-31`)
+        .order('id'),
+    );
+    sessionIdCache = {};
+    const sessById = {};
+    sessions.forEach((s) => {
+      const centreName = centreNameById[s.centre_id];
+      sessById[s.id] = { centreName, date: s.session_date };
+      sessionIdCache[`${centreName}|${s.session_date}`] = s.id;
+    });
+
+    const sessionIds = sessions.map((s) => s.id);
+    const atts = sessionIds.length
+      ? await readAll(() =>
+          sb
+            .from('attendance')
+            .select('id,student_id,session_id,status,reason')
+            .in('session_id', sessionIds)
+            .order('id'),
+        )
+      : [];
+    atts.forEach((a) => {
+      const sess = sessById[a.session_id];
+      if (!sess) return;
+      const idx =
+        dateIndex[sess.centreName] && dateIndex[sess.centreName][sess.date];
+      if (!idx) return;
+      const name = studentNameById[a.student_id];
+      if (!name) return;
+      store[KA(sess.centreName, idx.wi, idx.di, name)] = a.status;
+      if (a.reason) store[KR(sess.centreName, idx.wi, idx.di, name)] = a.reason;
+    });
+
+    const ups = sessionIds.length
+      ? await readAll(() =>
+          sb
+            .from('lab_uptime')
+            .select('id,session_id,planned_hours,actual_hours')
+            .in('session_id', sessionIds)
+            .order('id'),
+        )
+      : [];
+    ups.forEach((u) => {
+      const sess = sessById[u.session_id];
+      if (!sess) return;
+      const idx =
+        dateIndex[sess.centreName] && dateIndex[sess.centreName][sess.date];
+      if (!idx) return;
+      if (u.planned_hours != null)
+        store[KU(sess.centreName, idx.wi, idx.di, 'planned')] = u.planned_hours;
+      if (u.actual_hours != null)
+        store[KU(sess.centreName, idx.wi, idx.di, 'actual')] = u.actual_hours;
+    });
+
+    const { data: notes, error: nxe } = await sb
+      .from('week_notes')
+      .select('centre_id,week_number,notes')
+      .eq('academic_year', academicYear);
+    if (nxe) throw nxe;
+    notes.forEach((n) => {
+      const centreName = centreNameById[n.centre_id];
+      if (centreName) store[KN(centreName, n.week_number)] = n.notes;
+    });
+  }
+  async function loadData() {
+    databaseReady = false;
+    store = {};
+    sessionIdCache = {};
+    MILIMANI.length = 0;
+    CORAM_DEO.length = 0;
+    if (!sb) throw new Error('Database connection unavailable.');
+    await loadCentresAndStudents();
+    await loadAttendanceUptimeNotesFromDB();
+    await loadReportsFromDB();
+    await loadChallengeItemsFromDB();
+    databaseReady = true;
+    setDbStatus('Connected to database', true);
+  }
+  function renderAll() {
+    document.getElementById('enrolment-target').textContent =
+      `${currentCenter} — ${academicYear}`;
+    WEEKS = getWeeksWithDays(currentCenter);
+    document.getElementById('centre-schedule').textContent =
+      CENTER_SCHEDULE[currentCenter];
+    initWeekSelect();
+    buildDayTabs();
+    renderRegister();
+  }
+  async function init() {
+    initYearSelect();
+    try {
+      await loadData();
+    } catch (e) {
+      setDbStatus('Connection failed', false);
+      document.getElementById('year-message').textContent =
+        'Could not load register: ' + e.message;
+    }
+    WEEKS = getWeeksWithDays(currentCenter);
+    const idx = findCurrentIndex(WEEKS);
+    currentWeek = idx.wi;
+    currentDay = idx.di;
+    centerView[currentCenter] = { week: currentWeek, day: currentDay };
+    renderAll();
+  }
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    if (!email || !password) {
+      errEl.textContent = 'Enter both email and password.';
+      return;
+    }
+    if (!sb) {
+      errEl.textContent = 'Database not connected.';
+      return;
+    }
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errEl.textContent = error.message;
+      return;
+    }
     await showApp();
   }
-  // else: leave the login overlay showing
-}
-checkSession();
+  async function doLogout() {
+    if (!confirm('Sign out of the CISCO Training Programme system?')) return;
+    stopInactivityTimer();
+    clearTimeout(autoSaveTimer);
+    try {
+      await saveAll();
+    } catch (e) {
+      console.error('Save before logout failed', e);
+    }
+    try {
+      if (sb) await sb.auth.signOut();
+    } catch (e) {
+      console.error('Sign out request failed', e);
+    }
+    // Belt-and-braces: also wipe any locally cached Supabase session
+    // directly, in case the network call above didn't complete.
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith('sb-')) localStorage.removeItem(k);
+      });
+    } catch (e) {
+      console.error('Local session clear failed', e);
+    }
+    location.reload();
+  }
+
+  // ---- Auto sign-out after inactivity (30 minutes) ----
+  const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+  let inactivityTimer = null;
+  function resetInactivityTimer() {
+    if (!sb) return; // no auth configured, nothing to time out
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(autoSignOut, INACTIVITY_LIMIT_MS);
+  }
+  function stopInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = null;
+  }
+  async function autoSignOut() {
+    clearTimeout(autoSaveTimer);
+    try {
+      await saveAll();
+    } catch (e) {
+      console.error('Save before auto sign-out failed', e);
+    }
+    try {
+      if (sb) await sb.auth.signOut();
+    } catch (e) {
+      console.error('Auto sign-out request failed', e);
+    }
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith('sb-')) localStorage.removeItem(k);
+      });
+    } catch (e) {}
+    try {
+      sessionStorage.setItem('cisco_auto_signed_out', '1');
+    } catch (e) {}
+    location.reload();
+  }
+  ['mousemove', 'keydown', 'click', 'touchstart', 'scroll'].forEach((evt) => {
+    document.addEventListener(
+      evt,
+      () => {
+        const root = document.getElementById('app-root');
+        if (root && root.style.display !== 'none') resetInactivityTimer();
+      },
+      { passive: true },
+    );
+  });
+
+  async function showApp() {
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('app-root').style.display = '';
+    resetInactivityTimer();
+    await init();
+  }
+  async function checkSession() {
+    try {
+      if (sessionStorage.getItem('cisco_auto_signed_out')) {
+        document.getElementById('login-error').textContent =
+          'You were signed out after a period of inactivity. Please sign in again.';
+        sessionStorage.removeItem('cisco_auto_signed_out');
+      }
+    } catch (e) {}
+    if (!sb) {
+      // No database connection at all — skip login, run in local-only mode
+      await showApp();
+      return;
+    }
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) {
+      await showApp();
+    }
+    // else: leave the login overlay showing
+  }
+  checkSession();
 </script>

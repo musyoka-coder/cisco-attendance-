@@ -1,9 +1,82 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cisco | Appraisal and surveys</title><meta name="referrer" content="no-referrer"><link rel="stylesheet" href="appraisal.css"></head><body>
-<header><div><h1>Teaching, evidence & appraisal</h1><p>Missions of Hope International · Cisco training</p></div><div class="actions"><a href="index.html">Attendance register</a><button id="signout" class="secondary">Sign out</button></div></header>
-<main><div id="message" role="status" aria-live="polite">Checking staff access…</div>
-<section id="login" class="card" hidden><h2>Staff sign in</h2><form id="login-form" class="grid"><label>Email<input name="email" type="email" required autocomplete="username"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label><div><button>Sign in</button></div></form></section>
-<div id="workspace" hidden><div class="filters"><label>Centre<select id="centre"></select></label><label>Academic year<select id="year"></select></label><label>Evidence from<input id="from" type="date"></label><label>Evidence to<input id="to" type="date"></label><button id="refresh" class="secondary">Refresh</button><button id="export-all" class="secondary">Print / save appraisal PDF</button></div><nav id="navigation" aria-label="Appraisal modules"></nav><section id="content"></section></div></main>
-<dialog id="editor"><form id="record-form"><h2 id="editor-title"></h2><div id="record-fields" class="grid"></div><p id="form-message" role="alert"></p><div class="actions"><button id="save-record">Save record</button><button type="button" id="cancel-editor" class="secondary">Cancel</button></div></form></dialog>
-<dialog id="viewer"><div id="viewer-content"></div><button id="close-viewer" class="secondary">Close</button></dialog>
-<div id="print-view"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="appraisal-config.js"></script><script src="appraisal.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cisco | Appraisal and surveys</title>
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="appraisal.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Teaching, evidence & appraisal</h1>
+        <p>Missions of Hope International · Cisco training</p>
+      </div>
+      <div class="actions">
+        <a href="index.html">Attendance register</a
+        ><button id="signout" class="secondary">Sign out</button>
+      </div>
+    </header>
+    <main>
+      <div id="message" role="status" aria-live="polite">
+        Checking staff access…
+      </div>
+      <section id="login" class="card" hidden>
+        <h2>Staff sign in</h2>
+        <form id="login-form" class="grid">
+          <label
+            >Email<input
+              name="email"
+              type="email"
+              required
+              autocomplete="username" /></label
+          ><label
+            >Password<input
+              name="password"
+              type="password"
+              required
+              autocomplete="current-password"
+          /></label>
+          <div><button>Sign in</button></div>
+        </form>
+      </section>
+      <div id="workspace" hidden>
+        <div class="filters">
+          <label>Centre<select id="centre"></select></label
+          ><label>Academic year<select id="year"></select></label
+          ><label>Evidence from<input id="from" type="date" /></label
+          ><label>Evidence to<input id="to" type="date" /></label
+          ><button id="refresh" class="secondary">Refresh</button
+          ><button id="export-all" class="secondary">
+            Print / save appraisal PDF
+          </button>
+        </div>
+        <nav id="navigation" aria-label="Appraisal modules"></nav>
+        <section id="content"></section>
+      </div>
+    </main>
+    <dialog id="editor">
+      <form id="record-form">
+        <h2 id="editor-title"></h2>
+        <div id="record-fields" class="grid"></div>
+        <p id="form-message" role="alert"></p>
+        <div class="actions">
+          <button id="save-record">Save record</button
+          ><button type="button" id="cancel-editor" class="secondary">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="viewer">
+      <div id="viewer-content"></div>
+      <button id="close-viewer" class="secondary">Close</button>
+    </dialog>
+    <div id="print-view"></div>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="appraisal-config.js"></script>
+    <script src="appraisal.js"></script>
+  </body>
+</html>
