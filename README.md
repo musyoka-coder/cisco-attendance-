@@ -28,3 +28,36 @@ Run `npm ci` then `npm test`. Parser tests cover actual XLSX/XLS round trips, va
 An optional Playwright script is available at `tests/browser.cjs`; serve the project on port 8765 and run it with Playwright installed. Set `CHROMIUM_PATH` if needed. Browser rendering could not be checked in the development environment because Chromium launch was blocked by its socket restrictions.
 
 SheetJS CE 0.20.3 is vendored from `https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js`; its Apache 2.0 license is included in `vendor`.
+
+## Appraisal and learner surveys
+
+Open **Appraisal & surveys** from the register, or `appraisal.html` directly. The same Supabase sign-in is used. Choose centre/year and evidence dates. The workspace includes equipment, maintenance, assessments, individual feedback, revision/interventions, teaching impact, management submissions, feedback actions, development and a deadline planner.
+
+Every record edit creates a staff-attributed audit entry. Cancel a mistaken record rather than deleting evidence. Concurrent edits use a version check. Evidence URLs must be HTTPS. Print an individual record or the appraisal summary using **Print / save appraisal PDF**; choose your browser's Save as PDF destination. Submissions record the actual external submission and management feedback; saving does not send email.
+
+Weekly reports now include data insights and intervention plans, and new reports are tagged to the selected centre. Legacy reports remain unassigned because their centre cannot be inferred reliably. The dashboard reports analysis coverage only for explicitly centre-tagged reports. Performance comparisons are percentage-point changes between comparable baseline and latest follow-up scores for a learner/topic; they are not official appraisal grades. Maintenance coverage is based on the required logs actually entered, so missing planned logs must be entered before using the count as a compliance measure.
+
+### Send a learner survey
+
+1. Add learners for the desired centre/year.
+2. Open **Learner surveys**, enter a title and closing date, and create the survey.
+3. Choose **View answers & links**. Copy each learner's **personal link**, or download the personal-links CSV for distribution.
+4. The personal link selects their name and contains their private access code. Alternatively, share the class link and distribute each learner's code separately; the learner chooses their name and enters that code.
+5. After submission, open Learner surveys again or Refresh. Use **Read answers** for the named response, the question summary for averages, and **Create follow-up action** to document concerns and resolutions.
+6. Close the campaign to stop new submissions. Existing answers remain readable.
+
+The 13 versioned questions cover NetAcad understanding, practical confidence, clarity, demonstrated teaching competence, support, practice time, feedback, fairness, satisfaction, likes, dislikes, difficult topics and improvements. Ratings include a not-applicable option; written answers are optional. Learners are explicitly told that responses are named and visible to authorised staff. Survey links/codes must not be posted publicly. Duplicate submissions are idempotent and do not overwrite the first response.
+
+### Access controls
+
+The migration snapshots the project's existing non-anonymous staff accounts into `appraisal_staff`. New registrations receive no appraisal access. Appraisal records, history, survey invitations and responses have RLS and are inaccessible to anonymous table reads. The learner page has no staff session and uses only token-scoped RPCs. Submission additionally checks the individual invitation secret. SECURITY DEFINER code is contained in the private schema with explicit capability or staff checks; the exposed functions use invoker rights.
+
+Staff dashboards receive update notifications for new evidence and survey responses. The overview refreshes automatically when no record dialog is open. Other screens preserve ongoing work until Refresh is clicked.
+
+### Deployment
+
+The original GitHub Pages URL inherits an unrelated account-level custom-domain redirect and returns a 404. Use the dedicated Vercel production address. `npm run build` copies only the public application files into `dist`; database migrations, tests and package files are not served. The Git-connected Vercel project follows `main`.
+
+### Additional validation
+
+`npm test` covers all ten record forms, edit version handling, survey creation, named response display, follow-up actions, survey closure, learner form rendering and safe retry after a submission error. `tests/appraisal-database.sql` runs a rolled-back authenticated/anonymous database test for all record modules, audit history, wrong-centre rejection, invitation snapshots, valid submission, duplicate prevention, wrong codes, missing ratings, private response access and closed links. It does not leave test evidence behind.
